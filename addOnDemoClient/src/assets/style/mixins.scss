@@ -1,0 +1,26 @@
+// 单行文本溢出打点
+@mixin truncate-text() {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+// 多行文本溢出打点, $line: 行数
+@mixin multi-truncate-text($line) {
+    white-space: pre-wrap;
+    overflow: hidden;
+    word-break: break-word;
+    display: -webkit-box;
+    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    line-clamp: #{$line};
+    -webkit-line-clamp: #{$line};
+}
+
+// flex 布局
+@mixin flex($justifyContent: center, $alignItems: center, $direction: row) {
+    display: flex;
+    justify-content: #{$justifyContent};
+    align-items: #{$alignItems};
+    flex-direction: #{$direction};
+}
