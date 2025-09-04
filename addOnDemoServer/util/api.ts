@@ -1,5 +1,5 @@
 // const tokenStore = require("./tokenStore.ts");
-import { tokenStore } from "./tokenStore";
+import { tokenStore } from "../db/tokenStore";
 
 export const getAt = async (): Promise<string> => {
   try {

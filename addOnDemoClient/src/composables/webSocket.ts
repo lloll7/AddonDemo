@@ -3,6 +3,7 @@ import type {
   ClientMessage,
   WebSocketConfig,
   WebSocketHandlers,
+  DeviceControlMessage,
 } from "@/ts/interface/IWebsocket";
 
 export class WebSocketClient {
@@ -81,14 +82,27 @@ export class WebSocketClient {
 
   // 处理服务器消息
   public handleMessage(data: ServerMessage) {
+    console.log(data, "handleData");
+
+    // 调用外部消息处理器
+    if (this.handlers.onMessage) {
+      this.handlers.onMessage(data);
+    }
+
     switch (data.type) {
       case "welcome":
         this.clientId = data.id || null;
         console.log(`${data.message}, 客户端ID为：${this.clientId}`);
+        break;
       case "pong":
         console.log(`心跳响应，timestamp: ${data.timestamp}`);
+        break;
       case "broadcast":
         console.log(`收到推送消息：${data.message}`);
+        break;
+      case "device_update":
+        console.log(`收到设备更新消息：`, data.message);
+        break;
       case "echo":
         console.log(`收到默认消息: ${data.originalMessage}`);
         break;
@@ -164,6 +178,13 @@ export class WebSocketClient {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
     }
+  }
+  public changeDeviceStatus(device: DeviceControlMessage) {
+    return this.send({
+      type: "device_control",
+      message: device,
+      timestamp: Date.now(),
+    });
   }
   /**
    * 设置连接事件处理器

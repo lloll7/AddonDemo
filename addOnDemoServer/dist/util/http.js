@@ -56,32 +56,45 @@ exports.put = put;
 exports.del = del;
 exports.patch = patch;
 var axios_1 = __importDefault(require("axios"));
+// import { message } from "ant-design-vue"; // 如果有使用UI框架
+var api_1 = require("./api");
+var public_1 = require("../util/public");
 // 创建 axios 实例
 var http = axios_1.default.create({
-    baseURL: "https://cn-apia.coolkit.cn/v2",
+    baseURL: "https://".concat(process.env.EWELINK_APP_DOMAIN, "/v2"),
     timeout: 10000,
     headers: {
         "Content-Type": "application/json",
+        "X-CK-Nonce": (0, public_1.createNoce)(),
+        Accept: "application/json",
     },
 });
 // 请求拦截器
-http.interceptors.request.use(function (config) {
-    // 在发送请求之前做些什么
-    // const at = api.getAt();
-    // if (at) {
-    //   config.headers.Authorization = `Bearer ${at}`;
-    // }
+http.interceptors.request.use(function (config) { return __awaiter(void 0, void 0, void 0, function () {
+    var at;
     var _a;
-    // 添加时间戳防止缓存
-    // if (config.method === "get") {
-    //   config.params = {
-    //     ...config.params,
-    //     _t: Date.now(),
-    //   };
-    // }
-    console.log("\u53D1\u9001\u8BF7\u6C42: ".concat((_a = config.method) === null || _a === void 0 ? void 0 : _a.toUpperCase(), " ").concat(config.url));
-    return config;
-}, function (error) {
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0: return [4 /*yield*/, (0, api_1.getAt)()];
+            case 1:
+                at = _b.sent();
+                console.log(at, "at");
+                if (at && !config.headers.Authorization) {
+                    config.headers.Authorization = "Bearer ".concat(at);
+                    console.log(config.headers.Authorization, "config.headers.Authorization");
+                }
+                // 添加时间戳防止缓存
+                // if (config.method === "get") {
+                //   config.params = {
+                //     ...config.params,
+                //     _t: Date.now(),
+                //   };
+                // }
+                console.log("\u53D1\u9001\u8BF7\u6C42: ".concat((_a = config.method) === null || _a === void 0 ? void 0 : _a.toUpperCase(), " ").concat(config.url));
+                return [2 /*return*/, config];
+        }
+    });
+}); }, function (error) {
     // 对请求错误做些什么
     console.error("请求错误:", error);
     return Promise.reject(error);
@@ -89,7 +102,7 @@ http.interceptors.request.use(function (config) {
 // 响应拦截器
 http.interceptors.response.use(function (response) {
     // 对响应数据做点什么
-    console.log("\u6536\u5230\u54CD\u5E94: ".concat(response.status, " ").concat(response.statusText));
+    console.log("\u6536\u5230\u54CD\u5E94: ".concat(response.status, " ").concat(response));
     // 根据后端约定处理响应
     if (response.data && response.data.error === 0) {
         return response.data;
@@ -103,30 +116,26 @@ http.interceptors.response.use(function (response) {
 }, function (error) {
     // 对响应错误做点什么
     console.error("响应错误:", error);
+    var errData = error;
     if (error.response) {
         // 请求成功发出且服务器也响应了状态码，但状态码超出了 2xx 的范围
-        //   switch (error.response.status) {
-        //     case 401:
-        //       message.error("未授权，请重新登录");
-        //       //   if (typeof localStorage !== "undefined") {
-        //       //     localStorage.removeItem("token");
-        //       //   }
-        //       if (typeof window !== "undefined") {
-        //         window.location.href = "/login";
-        //       }
-        //       break;
-        //     case 403:
-        //       message.error("拒绝访问");
-        //       break;
-        //     case 404:
-        //       message.error("请求资源不存在");
-        //       break;
-        //     case 500:
-        //       message.error("服务器内部错误");
-        //       break;
-        //     default:
-        //       message.error(`连接错误${error.response.status}`);
-        //   }
+        switch (error.response.status) {
+            case 401:
+                errData = "未授权，请重新登录";
+                break;
+            case 403:
+                errData = "拒绝访问";
+                break;
+            case 404:
+                errData = "请求资源不存在";
+                break;
+            case 500:
+                errData = "服务器内部错误";
+                break;
+            default:
+                errData = "\u8FDE\u63A5\u9519\u8BEF".concat(error.response.status);
+        }
+        console.error("错误内容:", errData);
     }
     else if (error.request) {
         // 请求已经成功发起，但没有收到响应
@@ -170,11 +179,3 @@ function patch(url, data, config) {
     if (config === void 0) { config = {}; }
     return http.patch(url, data, config);
 }
-// module.exports = {
-//   http,
-//   get,
-//   post,
-//   put,
-//   del,
-//   patch,
-// };

@@ -1,6 +1,10 @@
 // example.ts
 import { WebSocketClient } from "./webSocket";
-import type { ServerMessage } from "@/ts/interface/IWebsocket";
+import type { ServerMessage, DeviceStatusUpdateMessage } from "@/ts/interface/IWebsocket";
+import type { IThingParams } from "@/ts/interface/IThing";
+import { useDeviceListStore } from "@/store/deviceList";
+import { useEtcStore } from "@/store/etc";
+// 注意：不要在模块顶层直接调用 useDeviceListStore，否则会在 pinia 初始化前报错。
 
 // 创建WebSocket客户端
 const wsClient = new WebSocketClient({
@@ -28,9 +32,33 @@ wsClient
       case "broadcast":
         console.log(`广播消息: ${data.message}, 来自: ${data.from}`);
         break;
+      case "device_update":
+        console.log("收到设备更新消息:", data.message);
+        const dataMsg = data.message as DeviceStatusUpdateMessage;
+        const deviceListStore = useDeviceListStore();
+        // setTimeout(() => {
+        //   deviceListStore.changeDeviceState("sysmsg", { online: false }, "a400012c27");
+        // }, 5000);
+        if (dataMsg.action === "update") {
+          const updateStatus: IThingParams = {};
+          if (dataMsg.params.childLock) {
+            updateStatus.childLock = dataMsg.params.childLock;
+          }
+          if (dataMsg.params.workMode) {
+            updateStatus.workMode = dataMsg.params.workMode;
+          }
+          console.log(updateStatus, "updateStatus");
+          //   deviceListStore.changeDeviceState("sysmsg", { online: false }, "a400012c27");
+          deviceListStore.changeDeviceState(dataMsg.action, updateStatus, dataMsg.deviceid);
+        } else if (dataMsg.action === "sysmsg") {
+          console.log("进入sysmsg");
+          deviceListStore.changeDeviceState(dataMsg.action, dataMsg.params, dataMsg.deviceid);
+        }
       case "pong":
         console.log("心跳响应正常");
         break;
+      default:
+        console.log("未知消息类型:", data.type);
     }
   })
   .onDisconnect((event) => {
@@ -41,7 +69,7 @@ wsClient
   });
 
 // 建立连接
-wsClient.connect();
+// wsClient.connect();
 
 // 示例：定期发送消息
 setInterval(() => {

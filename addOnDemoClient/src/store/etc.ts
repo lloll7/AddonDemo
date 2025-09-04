@@ -23,11 +23,17 @@ export const useEtcStore = defineStore("etcStore", {
   },
   getters: {},
   actions: {
+    getToken() {
+      return this.at;
+    },
+    getApikey() {
+      return this.apikey;
+    },
     setToken(state: eweLinkAppToken) {
       this.region = state.region;
       this.at = state.at;
       this.rt = state.rt;
-      this.apikey = state.apikey;
+      this.apikey = state.apiKey;
       this.account = state.account;
     },
     clearToken() {
@@ -39,11 +45,12 @@ export const useEtcStore = defineStore("etcStore", {
     },
     async initToken() {
       const tokenInfo = await api.user.getTokenInfo();
+      console.log(tokenInfo, "tokenInfo");
       if (tokenInfo) {
         this.region = tokenInfo.region;
         this.at = tokenInfo.at;
         this.rt = tokenInfo.rt;
-        this.apikey = tokenInfo.apikey;
+        this.apikey = tokenInfo.apiKey;
         this.account = tokenInfo.account;
       }
     },

@@ -9,7 +9,7 @@ export interface IThing {
   name: string;
   deviceid: string;
   apikey: string;
-  extra: object;
+  extra: any;
   brandName: string;
   brandLogo: string;
   showBrand: boolean;
@@ -17,14 +17,15 @@ export interface IThing {
   family: any;
   devicekey: string;
   online: boolean;
-  devGroups?: object[];
-  tags?: object;
-  devConfig?: object;
-  settings?: object;
-  sharedBy?: object;
-  shareTo?: object[];
-  params?: object;
-  gsmInfoData?: object;
+  devGroups?: any;
+  tags?: any;
+  devConfig?: any;
+  settings?: any;
+  sharedBy?: any;
+  shareTo?: any;
+  params?: any;
+  gsmInfoData?: any;
+  deviceConfigToApp?: any;
 }
 
 export interface IThingListItem {
@@ -48,6 +49,7 @@ export interface frontThing {
   isSynced: boolean;
   networkProtocol?: string;
   subDeviceNum?: number;
+  params?: any;
 }
 
 export interface IThingFamilyItem {

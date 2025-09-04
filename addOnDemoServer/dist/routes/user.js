@@ -40,62 +40,86 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
-// import CryptoJS from "crypto-js";
-var crypto_1 = __importDefault(require("crypto"));
-// import CryptoJS from "crypto-js";
-var public_1 = require("../util/public");
+var userService_1 = require("../service/userService");
 var http_1 = require("../util/http");
-var tokenStore_1 = require("../util/tokenStore");
+var tokenStore_1 = require("../db/tokenStore");
 var router = express_1.default.Router();
-/* GET users listing. */
+/* 登录 */
 router.post("/login", function (req, res, next) {
     return __awaiter(this, void 0, void 0, function () {
-        var buffer, appSecret, theSign, headerOption, result, error_1;
+        var result, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 4, , 5]);
+                    _a.trys.push([0, 2, , 3]);
                     console.log(req.body, "登录请求");
-                    buffer = Buffer.from(JSON.stringify(req.body), "utf-8");
-                    appSecret = "V0LmoW0cd2cg38i1eIM0P5Z29GjES4PA";
-                    theSign = crypto_1.default
-                        .createHmac("sha256", appSecret)
-                        .update(buffer)
-                        .digest("base64");
-                    console.log(JSON.parse(JSON.stringify(req.body)), "Request.body");
-                    console.log(theSign, JSON.stringify(req.body), "theSign");
-                    headerOption = {
-                        "X-CK-Nonce": (0, public_1.createNoce)(),
-                        "X-CK-Appid": "oc3tvAdJPmaVOKrLv0rjCC0dzub4bbnD",
-                        Authorization: "Sign ".concat(theSign),
-                    };
-                    return [4 /*yield*/, (0, http_1.post)("https://cn-apia.coolkit.cn/v2/user/login", JSON.stringify(req.body), {
+                    return [4 /*yield*/, (0, userService_1.loginService)(req.body)];
+                case 1:
+                    result = _a.sent();
+                    res.json(result);
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_1 = _a.sent();
+                    console.error("登录失败:", error_1);
+                    res.status(500).json({ error: "登录失败", msg: error_1.message });
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+});
+/* 退出登录 */
+router.delete("/logout", function (req, res, next) {
+    return __awaiter(this, void 0, void 0, function () {
+        var result, error_2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 5, , 6]);
+                    return [4 /*yield*/, (0, http_1.del)("/user/logout", {
                             headers: {
-                                "Content-Type": "application/json",
-                                "X-CK-Nonce": (0, public_1.createNoce)(),
-                                "X-CK-Appid": "oc3tvAdJPmaVOKrLv0rjCC0dzub4bbnD",
-                                Authorization: "Sign ".concat(theSign),
-                                Accept: "application/json",
+                                "X-CK-Appid": process.env.EWELINK_APP_APPID,
                             },
                         })];
                 case 1:
                     result = _a.sent();
-                    console.log(result, "res");
-                    if (!(result && result.data && result.data.at)) return [3 /*break*/, 3];
-                    return [4 /*yield*/, tokenStore_1.tokenStore.setToken(result.data.at, result.data.rt, result.data.user.apikey)];
+                    if (!(result.error === 0)) return [3 /*break*/, 3];
+                    console.log("into clear token");
+                    return [4 /*yield*/, tokenStore_1.tokenStore.clearToken()];
                 case 2:
                     _a.sent();
-                    console.log(result.data.at, result.data.rt, result.data.user.apikey, "Token已存储到数据库");
-                    _a.label = 3;
+                    res.json(result);
+                    return [3 /*break*/, 4];
                 case 3:
-                    res.json(result.data);
-                    return [3 /*break*/, 5];
-                case 4:
-                    error_1 = _a.sent();
-                    console.error("登录失败:", error_1);
-                    res.status(500).json({ error: "登录失败", message: error_1.message });
-                    return [3 /*break*/, 5];
-                case 5: return [2 /*return*/];
+                    console.log(result, "error result");
+                    res.status(500).json({ error: result.error, msg: result.msg });
+                    _a.label = 4;
+                case 4: return [3 /*break*/, 6];
+                case 5:
+                    error_2 = _a.sent();
+                    res.status(500).json({ error: "退出登录失败", msg: error_2.message });
+                    return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
+            }
+        });
+    });
+});
+router.get("/token", function (req, res, next) {
+    return __awaiter(this, void 0, void 0, function () {
+        var tokenInfo;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, tokenStore_1.tokenStore.getToken()];
+                case 1:
+                    tokenInfo = _a.sent();
+                    console.log(tokenInfo, "tokenInfo");
+                    if (tokenInfo && tokenInfo.at) {
+                        res.json(tokenInfo);
+                    }
+                    else {
+                        res.json(null);
+                    }
+                    return [2 /*return*/];
             }
         });
     });

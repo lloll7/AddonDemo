@@ -2,7 +2,7 @@ import axios, { type CancelToken, type AxiosRequestConfig } from "axios";
 import { getAt } from "./api";
 import EReqMethod from "../ts/enum/EReqMethod";
 import type IResponse from "../ts/class/CResponse";
-import { tokenStore } from "../util/tokenStore";
+import { tokenStore } from "../db/tokenStore";
 // import { apiUrl } from "@/config";
 // import { useDisconnect } from "@/hooks/useDisconnect";
 // 初始化axios设置

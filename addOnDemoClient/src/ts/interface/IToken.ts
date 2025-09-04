@@ -1,7 +1,7 @@
 export interface eweLinkAppToken {
   at: string;
   rt: string;
-  apikey: string;
+  apiKey: string;
   account: string;
   region: string;
   message?: string;

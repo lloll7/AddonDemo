@@ -43,8 +43,6 @@ service.interceptors.response.use(
    */
   (response) => {
     if (response.headers.authentication) {
-      // 响应头中如果有该字段，我们则需将该字段存入localstorage，之后的请求都需要将这个token带到服务器去
-      // 这一步很重要，一定要将这个token存储到本地
       localStorage.setItem("adminToken", response.headers.authentication);
     }
 

@@ -48,7 +48,7 @@ http.interceptors.request.use(
 http.interceptors.response.use(
   (response) => {
     // 对响应数据做点什么
-    console.log(`收到响应: ${response.status} ${response.statusText}`);
+    console.log(`收到响应: ${response.status} ${response}`);
 
     // 根据后端约定处理响应
     if (response.data && response.data.error === 0) {
@@ -64,31 +64,26 @@ http.interceptors.response.use(
   (error) => {
     // 对响应错误做点什么
     console.error("响应错误:", error);
-
+    let errData = error;
     if (error.response) {
       // 请求成功发出且服务器也响应了状态码，但状态码超出了 2xx 的范围
-      //   switch (error.response.status) {
-      //     case 401:
-      //       message.error("未授权，请重新登录");
-      //       //   if (typeof localStorage !== "undefined") {
-      //       //     localStorage.removeItem("token");
-      //       //   }
-      //       if (typeof window !== "undefined") {
-      //         window.location.href = "/login";
-      //       }
-      //       break;
-      //     case 403:
-      //       message.error("拒绝访问");
-      //       break;
-      //     case 404:
-      //       message.error("请求资源不存在");
-      //       break;
-      //     case 500:
-      //       message.error("服务器内部错误");
-      //       break;
-      //     default:
-      //       message.error(`连接错误${error.response.status}`);
-      //   }
+      switch (error.response.status) {
+        case 401:
+          errData = "未授权，请重新登录";
+          break;
+        case 403:
+          errData = "拒绝访问";
+          break;
+        case 404:
+          errData = "请求资源不存在";
+          break;
+        case 500:
+          errData = "服务器内部错误";
+          break;
+        default:
+          errData = `连接错误${error.response.status}`;
+      }
+      console.error("错误内容:", errData);
     } else if (error.request) {
       // 请求已经成功发起，但没有收到响应
       //   message.error("网络异常，请检查网络连接");

@@ -1,20 +1,4 @@
-export interface DeviceControlMessage {
-  action: "update";
-  apiKey: string;
-  selfApiKey?: string;
-  deviceid: string;
-  params: any;
-  userAgnet: string;
-  sequence: string;
-}
-
-export interface DeviceResponseMessage {
-  error: number;
-  apiKey?: string;
-  deviceid?: string;
-  sequence: string;
-}
-
+/** 客户端发送消息类 */
 export interface ClientMessage {
   // 消息类型
   type: "ping" | "broadcast" | "device_control" | "handeshake"; // 心跳、广播消息
@@ -24,7 +8,17 @@ export interface ClientMessage {
   timestamp?: number;
 }
 
-// 服务器发送的消息结构
+export interface DeviceControlMessage {
+  action: "update";
+  apikey: string;
+  selfApiKey?: string;
+  deviceid: string;
+  params: any;
+  userAgent: string;
+  sequence: string;
+}
+
+/** 服务器响应/推送消息类 */
 export interface ServerMessage {
   // 消息类型
   type: string;
@@ -38,6 +32,22 @@ export interface ServerMessage {
   from?: number;
   // 原始消息内容（可选，类型为any）
   originalMessage?: any;
+}
+
+export interface DeviceResponseMessage {
+  error: number;
+  apiKey?: string;
+  deviceid?: string;
+  sequence: string;
+}
+export interface DeviceStatusUpdateMessage {
+  action: string;
+  apikey: string;
+  deviceid: string;
+  params: any;
+  userAgent?: string;
+  d_seq?: number;
+  ts?: number;
 }
 
 export interface IHb {

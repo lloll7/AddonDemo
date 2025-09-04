@@ -1,9 +1,42 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require("dotenv/config");
+require("dotenv/config"); // 加载环境变量
 var http_errors_1 = __importDefault(require("http-errors"));
 var express_1 = __importDefault(require("express"));
 var path_1 = __importDefault(require("path"));
@@ -13,9 +46,13 @@ var morgan_1 = __importDefault(require("morgan"));
 var debug_1 = __importDefault(require("debug"));
 var debug = (0, debug_1.default)("server:server");
 var http_1 = __importDefault(require("http"));
-// import indexRouter from "./routes/index";
-// import userRouter from "./routes/user.ts";
+// 导入全局类型声明
+// import "./ts/interface/global";
 var user_1 = __importDefault(require("./routes/user"));
+var device_1 = __importDefault(require("./routes/device"));
+var AIBridge_1 = __importDefault(require("./routes/AIBridge"));
+var sse_1 = __importDefault(require("./routes/sse"));
+var websocket_1 = __importStar(require("./routes/websocket"));
 var cors_1 = __importDefault(require("cors"));
 var app = (0, express_1.default)();
 app.use((0, cors_1.default)()); // 启用 CORS，允许前端跨域请求
@@ -23,6 +60,8 @@ app.use((0, cors_1.default)()); // 启用 CORS，允许前端跨域请求
 var port = process.env.PORT || "3000";
 app.set("port", port);
 var server = http_1.default.createServer(app);
+// 初始化 WebSocket 服务器
+(0, websocket_1.initializeWebSocket)(server);
 server.listen(port);
 server.on("error", onError);
 server.on("listening", onListening);
@@ -83,6 +122,10 @@ app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.static(path_1.default.join(__dirname, "public")));
 // app.use("/", indexRouter);
 app.use("/user", user_1.default);
+app.use("/device", device_1.default);
+app.use("/sse", sse_1.default);
+app.use("/ws", websocket_1.default);
+app.use("/bridge", AIBridge_1.default);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
     next((0, http_errors_1.default)(404));

@@ -35,9 +35,12 @@
           >
             <a-form-item label="国家区号" name="countryCode">
               <a-select v-model:value="formState.countryCode">
-                <a-select-option v-for="item in AreaCodes" :key="item.value" :value="item.value">{{
-                  `${item.value}: ${item.label}`
-                }}</a-select-option>
+                <a-select-option
+                  v-for="item in AreaCodes"
+                  :key="`${item.value}-${item.label}`"
+                  :value="item.value"
+                  >{{ `${item.value}: ${item.label}` }}</a-select-option
+                >
               </a-select>
             </a-form-item>
             <a-form-item
@@ -61,10 +64,14 @@
     </div>
     <div class="device-list">
       <deviceItem
-        v-if="deviceList"
-        v-for="item in deviceList"
+        v-if="deviceListStore.deviceList"
+        v-for="item in deviceListStore.deviceList"
         :key="item.deviceId"
         :device="item"
+        :controlThing="controlThingBool"
+        @click="changeModalStatus(true)"
+        @changeModalStatus="changeModalStatus"
+        @changeDeviceStatus="(data) => changeDeviceStatus(data, item)"
       />
     </div>
   </div>
@@ -75,28 +82,30 @@ import logo from "@/assets/img/eWeLink-smart-home.logo.png";
 import { AreaCodes } from "@/util/countryList";
 import { ref, onMounted, onBeforeMount } from "vue";
 import { type ILoginInfo } from "@/ts/interface/IUser";
-import { type IThing } from "@/ts/interface/IThing";
+import type { IThing, IThingParams } from "@/ts/interface/IThing";
 import api from "@/api";
 import { useEtcStore } from "@/store/etc";
+import { useBridgeStore } from "@/store/bridge";
+import { useDeviceListStore } from "@/store/deviceList";
 import { message } from "ant-design-vue";
 import deviceItem from "@/components/deviceItem.vue";
-import { wsClient } from "@/composables/useWebSocket";
+import { wsClient } from "@/composables/useWebsocket";
+import type { DeviceControlMessage } from "@/ts/interface/IWebsocket";
+import { updateDeviceIsSync } from "@/util/updateDeviceIsSync";
 
 const etcStore = useEtcStore();
+const bridgeStore = useBridgeStore();
+const deviceListStore = useDeviceListStore();
 const infoInputModalStatus = ref(false);
 const confirmLoading = ref(false);
-const deviceList = ref<IThing[] | null>(null);
+const controlThingBool = ref(false);
 const formState = ref({
   countryCode: "",
   username: "",
   password: "",
 });
-etcStore.initToken();
-
-// 点击登录按钮
 const handleLoginClick = async () => {
   infoInputModalStatus.value = true;
-  console.log(AreaCodes, "AreaCodes");
 };
 
 // 登录
@@ -116,16 +125,14 @@ const handleSubmit = async () => {
       password: formState.value.password,
     };
   }
-  console.log(loginInfo, "loginInfo");
   const res = await api.user.login(loginInfo);
-  console.log(res, "res");
   if (res.at) {
     message.success("登录成功");
     wsClient.connect();
-    // localStorage.setItem("tokenInfo", JSON.stringify(res));
     etcStore.setToken(res);
     await etcStore.initToken();
-    await getDeviceListFn();
+    await deviceListStore.initDeviceList(etcStore.getToken());
+    await updateDeviceIsSync();
   } else {
     message.success(`登录失败, 原因: ${res.message ? res.message : ""}`);
   }
@@ -149,48 +156,74 @@ const handleLoginOutClick = async () => {
   const res = await api.user.loginOut();
   if (res.error === 0) {
     message.success("退出成功");
-    wsClient.disconnect();
-    etcStore.clearToken();
+    wsClient.disconnect(); // 断开ws连接
+    etcStore.clearToken(); // 清空token
+    deviceListStore.clearDeviceList();
   } else {
+    changeDeviceStatus;
     message.error(`${res.msg}`);
   }
   clearFormState();
 };
 
-const getDeviceListFn = async () => {
-  const thingList = await api.thing.getThingList();
-  deviceList.value = thingList;
-  console.log(deviceList.value, thingList);
+const changeModalStatus = (status: boolean) => {
+  console.log(deviceListStore.deviceList, "deviceListStore.deviceList");
+  controlThingBool.value = status;
+};
+// 更改设备状态
+const changeDeviceStatus = async (newDeviceStatus: IThingParams, currDevice: IThing) => {
+  const apikey = etcStore.getApikey();
+  console.log(apikey, "apikey");
+  if (apikey) {
+    const param: DeviceControlMessage = {
+      action: "update",
+      deviceid: currDevice.deviceId,
+      apikey: apikey,
+      sequence: JSON.stringify(Date.now()),
+      params: newDeviceStatus,
+      userAgent: "app",
+    };
+    wsClient.changeDeviceStatus(param);
+  } else {
+    message.error("登录失效，请重新登录");
+  }
 };
 
 /** SSE连接部分 */
-let eventSource: EventSource | null = null;
+// let eventSource: EventSource | null = null;
 
-onMounted(() => {
-  // 获取sse连接实例
-  eventSource = new EventSource("http://localhost:3000/sse/stream");
-  // 监听消息事件
-  eventSource.onmessage = (event: MessageEvent) => {
-    const data = JSON.parse(event.data);
-    console.log(data);
-  };
-  eventSource.addEventListener("ping", (e) => {
-    // 心跳
-    console.log("ping:", e.data);
-  });
-  eventSource.addEventListener("thingList", (e) => {
-    const payload = JSON.parse(e.data);
-    console.log("thingList: ", payload);
-  });
-  eventSource.onerror = (e) => {
-    console.warn("sse error", e);
-  };
+onMounted(async () => {
+  //   // 获取sse连接实例
+  //   eventSource = new EventSource("http://localhost:3000/sse/stream");
+  //   // 监听消息事件
+  //   eventSource.onmessage = (event: MessageEvent) => {
+  //     const data = JSON.parse(event.data);
+  //     console.log(data);
+  //   };
+  //   eventSource.addEventListener("ping", (e) => {
+  //     // 心跳
+  //     console.log("ping:", e.data);
+  //   });
+  //   eventSource.addEventListener("thingList", (e) => {
+  //     const payload = JSON.parse(e.data);
+  //     console.log("thingList: ", payload);
+  //   });
+  //   eventSource.onerror = (e) => {
+  //     console.warn("sse error", e);
+  //   };
+  await etcStore.initToken(); // 页面刷新后重新获取token
+  await bridgeStore.initBridgeAt();
+  if (etcStore.at) {
+    await deviceListStore.initDeviceList(etcStore.at); // 如果已登录则获取设备列表
+  }
+  await updateDeviceIsSync(); // 更新设备同步状态
+  wsClient.connect();
 });
 
 onBeforeMount(() => {
-  if (eventSource) {
-    eventSource.close();
-  }
+  //   if (eventSource) {
+  //     eventSource.close();
+  //   }
 });
 </script>
 

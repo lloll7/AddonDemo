@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
-import "@/composables/useWebSocket";
-// import HelloWorld from "./components/HelloWorld.vue";
 </script>
 
 <template>

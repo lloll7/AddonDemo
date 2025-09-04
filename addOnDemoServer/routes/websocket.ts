@@ -2,15 +2,17 @@
 import express from "express";
 import { WebSocketServer, WebSocket } from "ws";
 import { Server } from "http";
-import { DeviceServerClient } from "../service/deviceWsServer";
+import { deviceServerManager } from "../webscoketServer/deviceServerManager";
+import { controlService } from "../service/websocketService";
+import { tokenStore } from "../db/tokenStore";
 import type {
   ClientMessage,
   ServerMessage,
   DeviceResponseMessage,
+  DeviceControlMessage,
 } from "../ts/interface/IWebsocket";
-import type { IWsAddressRes } from "../ts/interface/IWsAddress";
-import axios from "axios";
-import { get } from "http";
+import { v4 } from "uuid";
+import { createNoce } from "../util/public";
 
 const router = express.Router();
 
@@ -18,31 +20,42 @@ const router = express.Router();
 const clients: Array<{ id: number; ws: WebSocket; isAlive: boolean }> = [];
 let clientId = 0;
 let wss: WebSocketServer | null = null;
-let deviceServer: DeviceServerClient | null = null;
-// 获取设备分配的长连接服务器地址, 同时进行设备长连接服务器的连接
-async function getWsAddress() {
-  const res = await axios.get<any, IWsAddressRes>(
-    `https://${process.env.DISPATCH_WEBSOCKET_ADDRESS}/dispatch/app`
-  );
-  console.log(res, "Res");
-  // 设备服务器客户端
-  deviceServer = new DeviceServerClient(`wss://${res.data.IP}/api/ws`, {
-    rejectUnauthorized: false, // 解决CA签名算法太弱的问题
-    maxReconnectAttempts: 5,
-    reconnectInterval: 1000,
-  });
-}
 
 // 初始化 WebSocket 服务器
 export async function initializeWebSocket(server: Server) {
   wss = new WebSocketServer({ server });
 
-  // 连接设备服务器
-  await getWsAddress();
-  console.log(deviceServer, "deviceServer");
-  deviceServer.connect().catch(console.error);
+  // 设置设备响应回调函数，用于广播设备消息给前端
+  deviceServerManager.setDeviceStatusUpdateCallback((deviceResponse) => {
+    console.log("收到设备服务器消息，准备广播给前端:", deviceResponse);
 
-  wss.on("connection", (ws: WebSocket) => {
+    // 广播设备响应消息给所有前端客户端
+    broadcast({
+      type: "device_update",
+      message: deviceResponse,
+      timestamp: Date.now(),
+    });
+  });
+
+  wss.on("connection", async (ws: WebSocket) => {
+    // 初始化设备服务器管理器
+    try {
+      await deviceServerManager.initialize();
+      const tokenInfo = await tokenStore.getToken();
+      await deviceServerManager.performHandshake({
+        action: "userOnline",
+        version: 8,
+        at: tokenInfo.at,
+        userAgent: "app",
+        apikey: tokenInfo.apiKey,
+        appid: process.env.EWELINK_APP_APPID,
+        nonce: createNoce(),
+        sequence: String(Date.now()),
+      });
+      console.log("设备服务器管理器初始化成功");
+    } catch (error) {
+      console.error("设备服务器管理器初始化失败:", error);
+    }
     const id = ++clientId;
     const client = { id, ws, isAlive: true };
     clients.push(client);
@@ -86,10 +99,10 @@ export async function initializeWebSocket(server: Server) {
               timestamp: Date.now(),
             });
             break;
-        //   case "handshake":
-        //     // 处理握手消息
-        //     await handleHandShake(message, id, ws);
-        //     break;
+          //   case "handshake":
+          //     // 处理握手消息
+          //     await handleHandShake(message, id, ws);
+          //     break;
 
           case "device_control":
             // 处理设备控制消息
@@ -127,6 +140,8 @@ export async function initializeWebSocket(server: Server) {
           `WebSocket 客户端 ${id} 已断开，当前连接数: ${clients.length}`
         );
       }
+      clearInterval(heartbeat);
+      deviceServerManager.disconnect(); // 断开设备服务器连接
     });
 
     // 处理错误
@@ -165,11 +180,11 @@ export async function initializeWebSocket(server: Server) {
     });
   }, 30000); // 30秒心跳间隔
 
-  // 清理心跳定时器
-  wss.on("close", () => {
-    clearInterval(heartbeat);
-    deviceServer?.disconnect();
-  });
+  //   // 清理心跳定时器
+  //   wss.on("close", () => {
+  //     clearInterval(heartbeat);
+  //     deviceServerManager.disconnect(); // 断开设备服务器连接
+  //   });
 }
 
 // 处理设备控制消息
@@ -178,6 +193,7 @@ async function handleDeviceControl(
   clientId: number,
   ws: WebSocket
 ) {
+  console.log(message, "messagemessage");
   try {
     // 先判断 message.message 是否为对象且包含 deviceid
     if (
@@ -196,7 +212,7 @@ async function handleDeviceControl(
     }
 
     // 检查设备服务器连接状态
-    if (!deviceServer?.connected) {
+    if (!deviceServerManager.isConnected()) {
       ws.send(
         JSON.stringify({
           type: "error",
@@ -206,9 +222,11 @@ async function handleDeviceControl(
       );
       return;
     }
-
+    console.log(message, "messagemessagemessage");
     // 发送设备控制指令到设备服务器
-    const response = await deviceServer.sendDeviceControl(message.message);
+    const response = await deviceServerManager.sendDeviceControl(
+      message.message
+    );
 
     // 将设备响应发送回客户端
     const clientMessage: ServerMessage = {
@@ -216,7 +234,8 @@ async function handleDeviceControl(
       message: response,
       timestamp: Date.now(),
     };
-
+    // 如果是同步设备的状态变更，在这里判断设备状态改变是否成功，成功则上报设备状态更新
+    // ....
     ws.send(JSON.stringify(clientMessage));
   } catch (error) {
     console.error("设备控制处理失败:", error);
@@ -231,68 +250,6 @@ async function handleDeviceControl(
     );
   }
 }
-
-// // 添加握手处理函数
-// async function handleHandShake(
-//   message: ClientMessage,
-//   clientId: number,
-//   ws: WebSocket
-// ) {
-//   try {
-//     if (
-//       typeof message.message !== "object" ||
-//       !message.message ||
-//       !("apiKey" in message.message)
-//     ) {
-//       ws.send(
-//         JSON.stringify({
-//           type: "error",
-//           message: "握手消息缺少必要参数",
-//           timestamp: Date.now(),
-//         })
-//       );
-//       return;
-//     }
-
-//     // 检查设备服务器连接状态
-//     if (!deviceServer?.connected) {
-//       ws.send(
-//         JSON.stringify({
-//           type: "error",
-//           message: "设备服务器未连接",
-//           timestamp: Date.now(),
-//         })
-//       );
-//       return;
-//     }
-
-//     // 发送握手请求到设备服务器
-//     const response = await deviceServer.handShake(
-//       message.message.apiKey,
-//       message.message.userAgent || 'Web Client'
-//     );
-
-//     // 将握手响应发送回客户端
-//     const clientMessage: ServerMessage = {
-//       type: "handshake_response",
-//       message: response,
-//       timestamp: Date.now(),
-//     };
-
-//     ws.send(JSON.stringify(clientMessage));
-//   } catch (error) {
-//     console.error("握手处理失败:", error);
-//     ws.send(
-//       JSON.stringify({
-//         type: "error",
-//         message: `握手失败: ${
-//           error instanceof Error ? error.message : "未知错误"
-//         }`,
-//         timestamp: Date.now(),
-//       })
-//     );
-//   }
-// }
 
 // 广播消息给所有客户端
 export function broadcast(data: unknown) {
@@ -332,7 +289,7 @@ router.get("/status", (req, res) => {
   res.json({
     connected: clients.length,
     clients: getClients(),
-    deviceServerConnected: deviceServer?.connected || false,
+    deviceServerConnected: deviceServerManager.isConnected(),
     timestamp: Date.now(),
   });
 });
@@ -353,23 +310,23 @@ router.post("/broadcast", express.json(), (req, res) => {
 
 // 通过 HTTP 发送设备控制指令
 router.post("/device-control", express.json(), async (req, res) => {
-  const { deviceId } = req.body;
-
-  if (!deviceId) {
-    return res.status(400).json({
-      error: "缺少 deviceId 参数",
-    });
-  }
-
   try {
-    if (!deviceServer?.connected) {
+    if (!deviceServerManager.isConnected()) {
       return res.status(503).json({
         error: "设备服务器未连接",
       });
     }
-
-    const response = await deviceServer.sendDeviceControl(req.body);
-    res.json(response);
+    controlService(req.body);
+    res.json({
+      event: {
+        header: {
+          name: "Response",
+          message_id: v4(),
+          version: "2",
+        },
+        payload: {},
+      },
+    });
   } catch (error) {
     res.status(500).json({
       error: `设备控制失败: ${

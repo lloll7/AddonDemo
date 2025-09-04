@@ -1,0 +1,6 @@
+node_modules
+.git
+.gitignore
+dist          # 排除本地构建目录（容器内会重新构建）
+.env.*        # 环境变量文件不打包进镜像
+*.log

@@ -9,4 +9,11 @@ export interface IThing {
   isSynced: boolean;
   networkProtocol?: string;
   subDeviceNum?: number;
+  params?: any;
+  serial_number?: string;
+}
+
+export interface IThingParams {
+  childLock?: boolean;
+  workMode?: string;
 }

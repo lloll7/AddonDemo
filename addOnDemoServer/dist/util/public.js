@@ -1,15 +1,4 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -58,11 +47,9 @@ var axios_1 = __importDefault(require("axios"));
 var api_1 = require("./api");
 var EReqMethod_1 = __importDefault(require("../ts/enum/EReqMethod"));
 // import { apiUrl } from "@/config";
-// import { useEtcStore } from "@/store/etc";
 // import { useDisconnect } from "@/hooks/useDisconnect";
-var domain = process.env.EWELINK_APP_DOMAIN;
 // 初始化axios设置
-axios_1.default.defaults.baseURL = "https://".concat(domain, "/v2");
+axios_1.default.defaults.baseURL = process.env.IHOST_OPENAPI_ADDRESS;
 axios_1.default.defaults.timeout = 60000;
 // 生成随机数
 var chars = [
@@ -111,11 +98,15 @@ function createNoce() {
     }
     return result;
 }
-function createCommonHeader(type, params, at, headerOption) {
+function createCommonHeader(type, params, at) {
     var auth = at ? "Bearer ".concat(at) : "";
-    return __assign({ Accept: "application/json", "Content-Type": "application/json", "Cache-Control": "no-store", Nonce: createNoce(), Authorization: headerOption.Authorization
-            ? headerOption.Authorization
-            : auth }, headerOption);
+    return {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+        Nonce: createNoce(),
+        Authorization: auth,
+    };
 }
 function beforeLoginRequest(url, params, methodType) {
     return _httpGetPOSTPutDeleteRequest(url, params, methodType);
@@ -137,14 +128,13 @@ function afterLoginRequest(url, params, methodType, cancelToken) {
     });
 }
 function _httpGetPOSTPutDeleteRequest(url_1, params_1, methodType_1) {
-    return __awaiter(this, arguments, void 0, function (url, params, methodType, at, cancelToken, headerOption) {
+    return __awaiter(this, arguments, void 0, function (url, params, methodType, at, cancelToken) {
         var headers, axiosConfig, result, error_1, errorStr, msg;
         if (at === void 0) { at = null; }
-        if (headerOption === void 0) { headerOption = null; }
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    headers = createCommonHeader(methodType, params, at, headerOption);
+                    headers = createCommonHeader(methodType, params, at);
                     axiosConfig = {
                         url: url,
                         method: methodType,

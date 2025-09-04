@@ -1,10 +1,10 @@
 export interface DeviceControlMessage {
   action: "update";
-  apiKey: string;
+  apikey: string;
   selfApiKey?: string;
   deviceid: string;
   params: any;
-  userAgnet: string;
+  userAgent: string;
   sequence: string;
 }
 
@@ -15,12 +15,21 @@ export interface DeviceResponseMessage {
   sequence: string;
 }
 
+export interface DeviceStatusUpdateMessage {
+  action: string;
+  apikey: string;
+  deviceid: string;
+  params: any;
+  userAgent?: string;
+  d_seq?: number;
+}
+
 // 服务器发送的消息结构
 export interface ServerMessage {
   // 消息类型
   type: string;
   // 消息内容（可选）
-  message?: string | DeviceResponseMessage;
+  message?: string | DeviceResponseMessage | DeviceStatusUpdateMessage;
   // 消息ID（可选）
   id?: number;
   // 时间戳

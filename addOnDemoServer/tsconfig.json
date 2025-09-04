@@ -19,6 +19,17 @@
     "typeRoots": ["node_modules/@types", "./types"],
     "types": ["node"]
   },
-  "include": ["routes", "ts", "util", "app.ts", "service"],
+  "include": [
+    "routes",
+    "ts",
+    "util",
+    "app.ts",
+    "service",
+    "db/aiBridgeTokenStore.ts",
+    "db/tokenStore.ts",
+    "webscoketServer/websocket.tssocket.ts",
+    "webscoketServer/deviceServerManager.ts",
+    "webscoketServer/deviceWsServer.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

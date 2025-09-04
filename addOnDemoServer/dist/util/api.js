@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.clearAt = exports.setAt = exports.getAt = void 0;
 // const tokenStore = require("./tokenStore.ts");
-var tokenStore_1 = require("./tokenStore");
+var tokenStore_1 = require("../db/tokenStore");
 var getAt = function () { return __awaiter(void 0, void 0, void 0, function () {
     var token, error_1;
     return __generator(this, function (_a) {
@@ -49,6 +49,7 @@ var getAt = function () { return __awaiter(void 0, void 0, void 0, function () {
             case 1:
                 token = _a.sent();
                 // token 可能为 null 或 { at: string; rt: string; apiKey: string; }
+                console.log(token, "tokentoken");
                 if (token && typeof token.at === "string") {
                     return [2 /*return*/, token.at];
                 }
@@ -65,13 +66,13 @@ var getAt = function () { return __awaiter(void 0, void 0, void 0, function () {
     });
 }); };
 exports.getAt = getAt;
-var setAt = function (at, rt, apiKey) { return __awaiter(void 0, void 0, void 0, function () {
+var setAt = function (at, rt, apiKey, region, account) { return __awaiter(void 0, void 0, void 0, function () {
     var error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, tokenStore_1.tokenStore.setToken(at, rt, apiKey)];
+                return [4 /*yield*/, tokenStore_1.tokenStore.setToken(at, rt, apiKey, region, account)];
             case 1:
                 _a.sent();
                 return [2 /*return*/, true];

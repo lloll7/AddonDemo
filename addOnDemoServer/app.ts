@@ -10,12 +10,14 @@ const debug = debugLib("server:server");
 import http from "http";
 import type { AddressInfo } from "net";
 
+// 导入全局类型声明
+// import "./ts/interface/global";
+
 import userRouter from "./routes/user";
 import deviceRouter from "./routes/device";
-import sseRouter from "./routes/sse";
-
-import wsRouter, { initializeWebSocket } from "./routes/websocket";
 import AIBridge from "./routes/AIBridge";
+import sseRouter from "./routes/sse";
+import wsRouter, { initializeWebSocket } from "./routes/websocket";
 
 import cors from "cors";
 
