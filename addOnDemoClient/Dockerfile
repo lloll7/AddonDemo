@@ -1,5 +1,5 @@
 ### 第一阶段：构建生产环境静态文件
-FROM node:22-alpine as builder
+FROM --platform=linux/arm/v7 node:22-alpine as builder
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ RUN npm run build
 
 
 ### 第二阶段：用 Nginx 部署
-FROM nginx:alpine
+FROM --platform=linux/arm/v7 nginx:alpine
 
 # 从构建阶段复制打包后的 dist 目录到 Nginx 静态目录
 COPY --from=builder /app/dist /usr/share/nginx/html

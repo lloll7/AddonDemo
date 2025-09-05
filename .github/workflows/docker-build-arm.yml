@@ -1,0 +1,70 @@
+name: CI for Full-Stack App
+
+on: [push, pull_request]
+
+env:
+  # 只有真正全局共享的、非敏感的变量才放在这里
+  REGISTRY: ghcr.io
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest-arm
+    # 前端Job的环境变量定义在这里
+    env:
+      # 前端的镜像名，只有前端job关心
+      IMAGE_NAME: addondemoclient
+      # 前端构建时需要的公共变量（非敏感）
+      VITE_APP_EWL_DOMAIN: cn-apia.coolkit.cn
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./addOnDemoClient
+          file: ./addOnDemoClient/Dockerfile
+          platforms: linux/arm/v7
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+          # 将环境变量作为构建参数（Build Args）传递给Dockerfile
+          build-args: |
+            VITE_APP_EWL_DOMAIN=${{ env.VITE_APP_EWL_DOMAIN }}
+
+  build-backend:
+    runs-on: ubuntu-latest-arm
+    # 后端Job的环境变量定义在这里，与前端完全隔离
+    env:
+      IMAGE_NAME: addondemoserver
+      # .env
+      NODE_ENV: development
+      # 请求地址
+      EWELINK_APP_DOMAIN: cn-apia.coolkit.cn
+      IHOST_OPENAPI_ADDRESS: 10.10.10.214
+      #websocket长连接分配地址
+      DISPATCH_WEBSOCKET_ADDRESS: cn-dispa.coolkit.cn
+      # 运行端口
+      PORT: 3000
+      # 后端需要的敏感变量，从GitHub Secrets中引入
+      # APPID和APPSECRET
+      EWELINK_APP_APPID: ${{ secrets.EWELINK_APP_APPID }}
+      EWELINK_APP_APPSECRET: ${{ secrets.EWELINK_APP_APPSECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./addOnDemoServer
+          file: ./addOnDemoServer/Dockerfile
+          platforms: linux/arm/v7
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+          # 传递后端专用的构建参数
+          build-args: |
+            NODE_ENV=${{ env.NODE_ENV }}
+            EWELINK_APP_DOMAIN=${{ env.EWELINK_APP_DOMAIN }}
+            IHOST_OPENAPI_ADDRESS=${{ env.IHOST_OPENAPI_ADDRESS }}
+            EWELINK_APP_APPID=${{ env.EWELINK_APP_APPID }}
+            EWELINK_APP_APPSECRET=${{ env.EWELINK_APP_APPSECRET }}
+            DISPATCH_WEBSOCKET_ADDRESS=${{ env.DISPATCH_WEBSOCKET_ADDRESS }}
+            PORT=${{ env.PORT }}

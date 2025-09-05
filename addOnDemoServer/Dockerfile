@@ -1,5 +1,5 @@
 ### 第一阶段：编译 TypeScript 代码
-FROM node:22-alpine as builder
+FROM --platform=linux/arm/v7 node:22-alpine as builder
 
 # 设置工作目录
 WORKDIR /app
@@ -18,7 +18,7 @@ RUN npm run build
 
 
 ### 第二阶段：生产环境运行
-FROM node:22-alpine
+FROM --platform=linux/arm/v7 node:22-alpine
 
 WORKDIR /app
 
