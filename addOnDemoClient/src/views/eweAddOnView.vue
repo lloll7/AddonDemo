@@ -69,7 +69,7 @@
         :key="item.deviceId"
         :device="item"
         :controlThing="controlThingBool"
-        @click="changeModalStatus(true)"
+        @click="item.isOnline && changeModalStatus(true)"
         @changeModalStatus="changeModalStatus"
         @changeDeviceStatus="(data) => changeDeviceStatus(data, item)"
       />

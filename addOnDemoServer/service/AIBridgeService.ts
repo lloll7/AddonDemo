@@ -5,7 +5,7 @@ import type {
   DRResponse,
 } from "../ts/interface/IBridge";
 import { aiBridgeTokenStore } from "../db/aiBridgeTokenStore";
-import { get, post } from "../util/AIBridgeHttp";
+import { get, post, del } from "../util/AIBridgeHttp";
 import { deviceStore } from "../db/deviceStore";
 import EThermostatMode from "../ts/enum/EThermostatMode";
 import { transfromStatusStructure } from "../util/tool";
@@ -160,5 +160,11 @@ export async function deviceOnlineStatesChangeReport(body: any) {
   };
   console.log(params, "设备上下限params");
   const result = await post("/thirdparty/event", params);
+  return result;
+}
+
+export async function delDevice(serNum: any) {
+  console.log(serNum, "网关删除子设备");
+  const result = await del(`/devices/${serNum}`);
   return result;
 }

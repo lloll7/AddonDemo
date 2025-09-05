@@ -24,7 +24,7 @@
       </div>
       <div class="device sync">
         <a-button
-          @click.stop="asyncDevice(device.deviceId)"
+          @click.stop="asyncDevice(device.deviceId, device.isSynced)"
           type="link"
           :danger="device.isSynced"
           :block="!device.isSynced"
@@ -59,7 +59,6 @@
           size="small"
           @change="handleSubmit(key)"
         />
-        <!-- <a-switch v-if="key === 'workMode'" v-model:checked="deviceParams[key]" size="small" /> -->
       </div>
       <a-button @click="handleCancel" class="btn">关闭</a-button>
     </a-modal>
@@ -76,6 +75,7 @@ import { defineEmits, ref, onMounted, watch } from "vue";
 import { useBridgeStore } from "@/store/bridge";
 import { message } from "ant-design-vue";
 import { updateDeviceIsSync } from "@/util/updateDeviceIsSync";
+import { useBridgeDeviceSerialNumberStore } from "@/store/bridgeDeviceList";
 import api from "@/api";
 const props = defineProps<{
   device: IThing;
@@ -83,10 +83,10 @@ const props = defineProps<{
 }>();
 const deviceParams = ref<IThingParams | null>(null);
 const bridgeStore = useBridgeStore();
+const bridgeDeviceSerialNumberStore = useBridgeDeviceSerialNumberStore();
 const emit = defineEmits(["changeModalStatus", "changeDeviceStatus"]);
 // 提交设备控制
 const handleSubmit = async (param: string) => {
-  console.log(deviceParams.value, "deviceParams.value");
   let data;
   switch (param) {
     case "childLock":
@@ -100,17 +100,34 @@ const handleSubmit = async (param: string) => {
       };
       break;
   }
-  console.log(data, "changeData");
   emit("changeDeviceStatus", data);
 };
 
 // 同步设备
-const asyncDevice = async (deviceid: string) => {
+const asyncDevice = async (deviceid: string, isSynced: boolean) => {
   // 先判断是否存有网关访问凭证
   const bridgeAt = bridgeStore.getBridgeAt();
   if (bridgeAt) {
     // 如果有则同步设备
-    // ...
+    // 判断是同步还是取消同步
+    if (isSynced) {
+      const serNumList = bridgeDeviceSerialNumberStore.getDeviceSerialNumber();
+      let devSerNum = null;
+      serNumList.forEach((item) => {
+        if (item.third_serial_number === deviceid) {
+          devSerNum = item.serial_number;
+          return;
+        }
+      });
+      if (!devSerNum) return;
+      const res = await api.bridge.delDevice(devSerNum);
+      if (res.error === 0) {
+        message.success("取消同步成功");
+        await updateDeviceIsSync(); // 更新设备同步状态
+      }
+      return;
+    }
+    // 同步
     const res = await api.bridge.syncDevice(deviceid);
     if (res.header && res.header.name === "Response") {
       message.success("同步成功");
@@ -119,7 +136,6 @@ const asyncDevice = async (deviceid: string) => {
       message.error("同步失败");
     }
   } else {
-    console.log("获取网关访问凭证");
     // 如果没有则调用获取网关访问凭证的接口
     const res = await api.bridge.getBridgeToken();
     if (res.error === 401) {
@@ -138,7 +154,6 @@ const handleCancel = () => {
 };
 
 onMounted(() => {
-  console.log(props.device, "device");
   const params = JSON.parse(JSON.stringify(props.device.params));
   deviceParams.value = {
     childLock: params.childLock,

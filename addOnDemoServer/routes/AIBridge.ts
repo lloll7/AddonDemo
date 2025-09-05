@@ -5,6 +5,7 @@ import {
   devicesSerivce,
   discoveryRequestService,
   deviceStatesChangeReport,
+  delDevice,
 } from "../service/AIBridgeService";
 const router = express.Router();
 
@@ -50,7 +51,24 @@ router.get("/devices", async (req, res, next) => {
 
 // 三方请求网关接口之同步设备列表
 router.post("/thirdparty/event/sync", async (req, res, next) => {
-  const result = await discoveryRequestService(req.body);
-  res.json(result);
+  try {
+    const result = await discoveryRequestService(req.body);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
 });
+
+// 路径上传参数，假设参数名为 serNum，可以这样写：
+router.delete("/del/:serNum", async (req, res, next) => {
+  try {
+    const { serNum } = req.params;
+    console.log(serNum, "delReq");
+    const result = await delDevice(serNum);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;
