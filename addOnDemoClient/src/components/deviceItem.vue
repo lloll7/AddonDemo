@@ -176,7 +176,7 @@ watch(
 watch(
   () => props.device.isOnline,
   (newVal) => {
-    console.log(newVal, "watch sysmsg");
+    console.log(newVal, "11watch sysmsg");
     if (!newVal) {
       emit("changeModalStatus", false);
     }

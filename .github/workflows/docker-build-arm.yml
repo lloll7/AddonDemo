@@ -24,7 +24,7 @@ jobs:
   build-client:
     name: Build Client ARMv7 Image
     # 使用 GitHub 提供的原生 ARM 运行器
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: addondemoclient
@@ -57,7 +57,7 @@ jobs:
   build-server:
     name: Build Server ARMv7 Image
     # 使用 GitHub 提供的原生 ARM 运行器
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: addondemoserver
