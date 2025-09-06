@@ -7,13 +7,13 @@ on:
     branches: [ master ]
     paths:
       - 'addOnDemoClient/**'
-      - 'addonDemoServer/**'
+      - 'addOnDemoServer/**'
       - '.github/workflows/master-docker-hub-arm.yml'
   pull_request:
     branches: [ master ]
     paths:
       - 'addOnDemoClient/**'
-      - 'addonDemoServer/**'
+      - 'addOnDemoServer/**'
 
 env:
   # 设置公共环境变量
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: addondemoclient
+        working-directory: addOnDemoClient
 
     steps:
     - name: Checkout code
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: addonDemoServer
+        working-directory: addOnDemoServer
 
     steps:
     - name: Checkout code
