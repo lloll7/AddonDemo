@@ -48,7 +48,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./addOnDemoClient
-        platforms: linux/arm/v7
+        platforms: linux/amd64,linux/arm64,linux/arm/v7
         push: true
         tags: |
           ${{ env.DOCKERHUB_USERNAME }}/${{ env.CLIENT_IMAGE }}:${{ env.VERSION }}-armv7
@@ -81,7 +81,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./addOnDemoServer
-        platforms: linux/arm/v7
+        platforms: linux/amd64,linux/arm64,linux/arm/v7
         push: true
         tags: |
           ${{ env.DOCKERHUB_USERNAME }}/${{ env.SERVER_IMAGE }}:${{ env.VERSION }}-armv7
