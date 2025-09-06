@@ -4,7 +4,11 @@ export const ewelinkToken = function (data) {
 };
 
 export const AIBridgeToken = function (data) {};
-
+/**
+ * @description 参数结构转换
+ * @param status
+ * @returns object
+ */
 export const transfromStatusStructure = function (status: any) {
   if (status.workMode) {
     let mode = EThermostatMode[status.workMode];

@@ -4,7 +4,6 @@ import {
   accessTokenService,
   devicesSerivce,
   discoveryRequestService,
-  deviceStatesChangeReport,
   delDevice,
 } from "../service/AIBridgeService";
 const router = express.Router();
@@ -63,7 +62,6 @@ router.post("/thirdparty/event/sync", async (req, res, next) => {
 router.delete("/del/:serNum", async (req, res, next) => {
   try {
     const { serNum } = req.params;
-    console.log(serNum, "delReq");
     const result = await delDevice(serNum);
     res.json(result);
   } catch (err) {

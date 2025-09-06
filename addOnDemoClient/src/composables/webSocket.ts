@@ -82,8 +82,6 @@ export class WebSocketClient {
 
   // 处理服务器消息
   public handleMessage(data: ServerMessage) {
-    console.log(data, "handleData");
-
     // 调用外部消息处理器
     if (this.handlers.onMessage) {
       this.handlers.onMessage(data);

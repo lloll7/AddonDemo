@@ -160,7 +160,7 @@ onMounted(() => {
     workMode: params.workMode,
   };
 });
-
+// 监听设备的设备信息更新
 watch(
   () => props.device.params,
   () => {
@@ -172,6 +172,7 @@ watch(
   },
   { deep: true },
 );
+// 监听设备上下线
 watch(
   () => props.device.isOnline,
   (newVal) => {

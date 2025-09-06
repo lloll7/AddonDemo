@@ -45,6 +45,5 @@ export async function controlService(body: any) {
       },
     };
     const reportResult = await post("/thirdparty/event", reportData);
-    console.log(reportResult, "reportResult");
   }
 }

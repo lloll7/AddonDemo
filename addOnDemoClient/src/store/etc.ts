@@ -45,7 +45,6 @@ export const useEtcStore = defineStore("etcStore", {
     },
     async initToken() {
       const tokenInfo = await api.user.getTokenInfo();
-      console.log(tokenInfo, "tokenInfo");
       if (tokenInfo) {
         this.region = tokenInfo.region;
         this.at = tokenInfo.at;

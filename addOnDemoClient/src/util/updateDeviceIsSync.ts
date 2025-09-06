@@ -5,7 +5,6 @@ export const updateDeviceIsSync = async () => {
   const bridgeDeviceListStore = useBridgeDeviceSerialNumberStore();
   const deviceListStore = useDeviceListStore();
   const bridgeDeviceSerialNumberList = await api.bridge.getBridgeDeviceSerialNumber();
-  console.log(bridgeDeviceSerialNumberList, "bridgeDeviceList");
   bridgeDeviceListStore.setDeviceSerialNumber(bridgeDeviceSerialNumberList);
   const deviceList = deviceListStore.getDeviceList();
   deviceList.forEach((item) => {
@@ -15,10 +14,6 @@ export const updateDeviceIsSync = async () => {
         item.isSynced = true;
       }
     });
-    // if (bridgeDeviceSerialNumberList.includes(item.deviceId)) {
-    //   item.isSynced = true;
-    // }
   });
-  console.log(deviceList, "deviceList");
   deviceListStore.setDeviceList(deviceList);
 };

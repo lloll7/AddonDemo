@@ -1,33 +1,35 @@
 ### 第一阶段：构建生产环境静态文件
-FROM --platform=linux/arm/v7 node:22-alpine as builder
+FROM node:22-alpine as builder
 
 WORKDIR /app
 
-# 复制依赖配置
+# 复制依赖定义文件
 COPY package*.json ./
 
-# 安装所有依赖（包括开发依赖，用于构建）
-RUN npm install
+# 设置环境变量，告诉 npm 和目标平台是 armv7
+ENV npm_config_platform=linux npm_config_arch=armv7
 
-# 复制源代码
+# 安装所有依赖
+RUN npm ci --prefer-offline --no-audit --ignore-scripts
+
+# 复制源代码和构建配置
 COPY . .
 
-# 执行构建命令（对应 scripts 中的 "build"，包含类型检查和打包）
+# 分别执行类型检查和构建命令，而不是使用复杂的 npm run build
 RUN npm run build
 
-
 ### 第二阶段：用 Nginx 部署
-FROM --platform=linux/arm/v7 nginx:alpine
+FROM nginx:alpine
 
-# 从构建阶段复制打包后的 dist 目录到 Nginx 静态目录
-COPY --from=builder /app/dist /usr/share/nginx/html
+# 从构建阶段复制打包后的文件，并更改所有权为 nginx 用户
+COPY --from=builder --chown=nginx:nginx /app/dist /usr/share/nginx/html
 
-# 解决 Vue Router history 模式刷新 404 问题（可选但推荐）
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# 复制 Nginx 配置文件
+COPY --chown=nginx:nginx nginx.conf /etc/nginx/conf.d/default.conf
 
-# 暴露 80 端口（Nginx 默认端口）
+# 暴露 80 端口
 EXPOSE 80
 
-# 启动 Nginx（前台运行）
+# 启动 Nginx
 CMD ["nginx", "-g", "daemon off;"]
     

@@ -59,50 +59,9 @@ class DeviceStore {
         console.error("创建表失败:", err.message);
       } else {
         console.log("devices表已就绪");
-        // 确保缺失列被补齐（用于已有数据库的迁移）
-        // this.ensureColumn("deviceConfigToApp", "TEXT");
-        // this.ensureColumn("denyFeatures", "TEXT");
-        // this.ensureColumn("isSupportGroup", "TEXT");
-        // this.ensureColumn("isSupportedOnMP", "TEXT");
-        // this.ensureColumn("isSupportChannelSplit", "TEXT");
-        // this.ensureColumn("deviceFeature", "TEXT");
-        // this.ensureColumn("matterInfoData", "TEXT");
-        // this.ensureColumn("trigger", "TEXT");
-        // this.ensureColumn("operations", "TEXT");
-        // this.ensureColumn("tmValid", "TEXT");
-        // this.ensureColumn("showOnHomepage", "TEXT");
       }
     });
   }
-
-  // 如果列不存在则添加，避免旧表缺列导致插入失败
-  //   private ensureColumn(columnName: string, columnType: string): void {
-  //     if (!this.db) return;
-  //     this.db.all(
-  //       "PRAGMA table_info(devices)",
-  //       (err: Error | null, rows: Array<{ name: string }>) => {
-  //         if (err) {
-  //           console.error("读取 devices 表结构失败:", err.message);
-  //           return;
-  //         }
-  //         const exists = Array.isArray(rows)
-  //           ? rows.some((r) => r.name === columnName)
-  //           : false;
-  //         if (!exists) {
-  //           this.db.run(
-  //             `ALTER TABLE devices ADD COLUMN ${columnName} ${columnType}`,
-  //             (alterErr: Error | null) => {
-  //               if (alterErr) {
-  //                 console.error(`添加列 ${columnName} 失败:`, alterErr.message);
-  //               } else {
-  //                 console.log(`已为 devices 表添加缺失列: ${columnName}`);
-  //               }
-  //             }
-  //           );
-  //         }
-  //       }
-  //     );
-  //   }
   // 批量插入设备数据
   setDevices(devices: IThing[]): Promise<void> {
     return new Promise((resolve, reject) => {

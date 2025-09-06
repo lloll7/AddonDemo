@@ -2,7 +2,6 @@ import type {
   tokenData,
   ResonseDeviceList,
   finalParam,
-  DRResponse,
 } from "../ts/interface/IBridge";
 import { aiBridgeTokenStore } from "../db/aiBridgeTokenStore";
 import { get, post, del } from "../util/AIBridgeHttp";
@@ -10,25 +9,23 @@ import { deviceStore } from "../db/deviceStore";
 import EThermostatMode from "../ts/enum/EThermostatMode";
 import { transfromStatusStructure } from "../util/tool";
 import { v4 } from "uuid";
-
+/**
+ * @description 获取网关访问凭证
+ */
 export async function accessTokenService() {
   let params = {
     app_name: "app",
   };
-  console.log(params, "AIBridgeParams");
   const result = await get<tokenData>("/bridge/access_token", params);
   // 兼容不同返回结构，假设 { access_token, expires_in }
   if (result.error === 0) {
-    console.log(result, "result");
     aiBridgeTokenStore.saveToken(result.data.token);
   }
   return result;
 }
 // 筛选处理网关子设备列表返回的信息
 export async function devicesSerivce(id: string | null = null) {
-  console.log(id, "单设备id");
   const result = await get<ResonseDeviceList>("/devices");
-  //   console.log(result.data.device_list, "devicesSerivce");
   // 只保留有third_serial_number字段的设备
   let serialNumbers = result.data.device_list
     .filter((item) => !!item.third_serial_number)
@@ -41,22 +38,21 @@ export async function devicesSerivce(id: string | null = null) {
     serialNumbers = serialNumbers.filter(
       (item) => item.third_serial_number === id
     );
-    console.log(serialNumbers, "serialNumbers");
   }
   return serialNumbers;
 }
-
+/**
+ * @description 同步新设备列表
+ * @param body
+ * @returns
+ */
 export async function discoveryRequestService(body: any) {
-  console.log(body, "body");
   const deviceId = body.deviceId;
   const deviceInfo = await deviceStore.getDevice(deviceId);
-  console.log(deviceInfo, "deviceInfo");
   const { deviceid, name, params, extra } = deviceInfo;
-  console.log(deviceid, "deviceiddeviceiddeviceid");
   const paramsObj = JSON.parse(params);
   const extraObj = JSON.parse(extra);
   let modeArr = ["MANUAL", "ECO", "AUTO"];
-  console.log(paramsObj, "params");
   let postParams: finalParam = {
     event: {
       header: {
@@ -113,16 +109,16 @@ export async function discoveryRequestService(body: any) {
     "[0].third_serial_number"
   );
   const result = await post("/thirdparty/event", postParams);
-  console.log(JSON.stringify(result), "同步设备返回结果");
   return result;
 }
-
+/**
+ * @description 设备状态更新上报
+ * @param body
+ * @returns
+ */
 export async function deviceStatesChangeReport(body: any) {
-  //   console.log(body, "设备状态更新上报");
   const status = transfromStatusStructure(body.status);
-  //   console.log(status, "单设备status");
   const serialNumbers = await devicesSerivce(body.status.deviceId);
-  //   console.log(serialNumbers, "单设备");
   const params: finalParam = {
     event: {
       header: {
@@ -136,11 +132,14 @@ export async function deviceStatesChangeReport(body: any) {
       },
     },
   };
-  //   console.log(params, "单设备params");
   const result = await post("/thirdparty/event", params);
   return result;
 }
-
+/**
+ * @description 设备上下线状态上报
+ * @param body
+ * @returns
+ */
 export async function deviceOnlineStatesChangeReport(body: any) {
   console.log(body, "设备上下线更新上报");
   const serialNumbers = await devicesSerivce(body.status.deviceId);
@@ -154,7 +153,6 @@ export async function deviceOnlineStatesChangeReport(body: any) {
       endpoint: serialNumbers[0],
       payload: {
         online: body.status.online,
-        // online: false,
       },
     },
   };
@@ -162,9 +160,12 @@ export async function deviceOnlineStatesChangeReport(body: any) {
   const result = await post("/thirdparty/event", params);
   return result;
 }
-
+/**
+ * @description 删除网关子设备
+ * @param serNum
+ * @returns
+ */
 export async function delDevice(serNum: any) {
-  console.log(serNum, "网关删除子设备");
   const result = await del(`/devices/${serNum}`);
   return result;
 }

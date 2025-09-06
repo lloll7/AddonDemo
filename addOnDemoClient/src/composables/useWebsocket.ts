@@ -36,9 +36,6 @@ wsClient
         console.log("收到设备更新消息:", data.message);
         const dataMsg = data.message as DeviceStatusUpdateMessage;
         const deviceListStore = useDeviceListStore();
-        // setTimeout(() => {
-        //   deviceListStore.changeDeviceState("sysmsg", { online: false }, "a400012c27");
-        // }, 5000);
         if (dataMsg.action === "update") {
           const updateStatus: IThingParams = {};
           if (dataMsg.params.childLock) {
@@ -77,13 +74,6 @@ setInterval(() => {
     wsClient.sendBroadcast(`定时消息 - ${new Date().toLocaleTimeString()}`);
   }
 }, 60000); // 每分钟发送一次
-
-// 示例：手动发送心跳
-function manualPing() {
-  if (wsClient.isConnected) {
-    wsClient.sendPing();
-  }
-}
 
 // 导出客户端实例供其他模块使用
 export { wsClient };

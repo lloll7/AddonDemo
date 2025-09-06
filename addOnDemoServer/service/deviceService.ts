@@ -5,19 +5,22 @@ import {
 } from "../ts/interface/IThing";
 import { get } from "../util/http";
 import { deviceStore } from "../db/deviceStore";
-
+/**
+ * @description 筛选传入前端的设备的设备信息
+ * @param body
+ * @returns
+ */
 export async function thingService(body: any) {
+  // 获取易微联设备列表
   const eweLinkThingList = await get<IThingList>("/device/thing", {});
-  console.log(eweLinkThingList, "eweLinkThingList");
+  // 获取家庭列表
   const familyList = await get<IThingFamilyList>("/family", {});
   const frontThingRes: frontThing[] = [];
   if (eweLinkThingList.error === 0) {
-    deviceStore.clearDevices();
+    deviceStore.clearDevices(); // 清空设备列表
     eweLinkThingList.data.thingList.forEach(async (thingItem) => {
       if (thingItem.itemData.productModel === "TRVZB") {
         deviceStore.setDevice(thingItem.itemData);
-        console.log(thingItem, "TINGiTEM");
-        console.log("testest");
         let familyName: string;
         if (thingItem.itemData.family.familyid) {
           familyList.data.familyList.forEach((familyItem) => {
@@ -39,7 +42,6 @@ export async function thingService(body: any) {
           networkProtocol: "zigbee",
           params: thingItem.itemData.params,
         });
-        console.log(frontThingRes, "frontThingRes1");
       }
     });
     return {

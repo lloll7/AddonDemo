@@ -1,70 +1,88 @@
-name: CI for Full-Stack App
+name: Build ARMv7 Docker Images
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'addondemoclient/**'
+      - 'addondemoserver/**'
+      - '.github/workflows/build.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'addondemoclient/**'
+      - 'addondemoserver/**'
 
 env:
-  # 只有真正全局共享的、非敏感的变量才放在这里
-  REGISTRY: ghcr.io
+  # 设置公共环境变量
+  DOCKERHUB_USERNAME: lin77777
+  CLIENT_IMAGE: addondemoclient
+  SERVER_IMAGE: addondemoserver
+  VERSION: v1.0  # 你可以使用 ${{ github.sha }} 或其它版本策略
 
 jobs:
-  build-frontend:
-    runs-on: ubuntu-latest-arm
-    # 前端Job的环境变量定义在这里
-    env:
-      # 前端的镜像名，只有前端job关心
-      IMAGE_NAME: addondemoclient
-      # 前端构建时需要的公共变量（非敏感）
-      VITE_APP_EWL_DOMAIN: cn-apia.coolkit.cn
+  build-client:
+    name: Build Client ARMv7 Image
+    # 使用 GitHub 提供的原生 ARM 运行器
+    runs-on: ubuntu-24.04-arm
+    defaults:
+      run:
+        working-directory: addondemoclient
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Build and Push Frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./addOnDemoClient
-          file: ./addOnDemoClient/Dockerfile
-          platforms: linux/arm/v7
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-          # 将环境变量作为构建参数（Build Args）传递给Dockerfile
-          build-args: |
-            VITE_APP_EWL_DOMAIN=${{ env.VITE_APP_EWL_DOMAIN }}
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-  build-backend:
-    runs-on: ubuntu-latest-arm
-    # 后端Job的环境变量定义在这里，与前端完全隔离
-    env:
-      IMAGE_NAME: addondemoserver
-      # .env
-      NODE_ENV: development
-      # 请求地址
-      EWELINK_APP_DOMAIN: cn-apia.coolkit.cn
-      IHOST_OPENAPI_ADDRESS: 10.10.10.214
-      #websocket长连接分配地址
-      DISPATCH_WEBSOCKET_ADDRESS: cn-dispa.coolkit.cn
-      # 运行端口
-      PORT: 3000
-      # 后端需要的敏感变量，从GitHub Secrets中引入
-      # APPID和APPSECRET
-      EWELINK_APP_APPID: ${{ secrets.EWELINK_APP_APPID }}
-      EWELINK_APP_APPSECRET: ${{ secrets.EWELINK_APP_APPSECRET }}
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push Client image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./addondemoclient
+        platforms: linux/arm/v7
+        push: true
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.CLIENT_IMAGE }}:${{ secrets.VERSION }}-armv7
+          ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.CLIENT_IMAGE }}:latest-armv7
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  build-server:
+    name: Build Server ARMv7 Image
+    # 使用 GitHub 提供的原生 ARM 运行器
+    runs-on: ubuntu-24.04-arm
+    defaults:
+      run:
+        working-directory: addondemoserver
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Build and Push Backend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./addOnDemoServer
-          file: ./addOnDemoServer/Dockerfile
-          platforms: linux/arm/v7
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-          # 传递后端专用的构建参数
-          build-args: |
-            NODE_ENV=${{ env.NODE_ENV }}
-            EWELINK_APP_DOMAIN=${{ env.EWELINK_APP_DOMAIN }}
-            IHOST_OPENAPI_ADDRESS=${{ env.IHOST_OPENAPI_ADDRESS }}
-            EWELINK_APP_APPID=${{ env.EWELINK_APP_APPID }}
-            EWELINK_APP_APPSECRET=${{ env.EWELINK_APP_APPSECRET }}
-            DISPATCH_WEBSOCKET_ADDRESS=${{ env.DISPATCH_WEBSOCKET_ADDRESS }}
-            PORT=${{ env.PORT }}
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push Server image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./addondemoserver
+        platforms: linux/arm/v7
+        push: true
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.SERVER_IMAGE }}:${{ secrets.VERSION }}-armv7
+          ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.SERVER_IMAGE }}:latest-armv7
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

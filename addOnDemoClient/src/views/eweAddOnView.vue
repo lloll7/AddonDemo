@@ -173,7 +173,6 @@ const changeModalStatus = (status: boolean) => {
 // 更改设备状态
 const changeDeviceStatus = async (newDeviceStatus: IThingParams, currDevice: IThing) => {
   const apikey = etcStore.getApikey();
-  console.log(apikey, "apikey");
   if (apikey) {
     const param: DeviceControlMessage = {
       action: "update",
@@ -189,9 +188,9 @@ const changeDeviceStatus = async (newDeviceStatus: IThingParams, currDevice: ITh
   }
 };
 
+/** 暂时去除sse连接, 后续长连接通过websocket进行 */
 /** SSE连接部分 */
 // let eventSource: EventSource | null = null;
-
 onMounted(async () => {
   //   // 获取sse连接实例
   //   eventSource = new EventSource("http://localhost:3000/sse/stream");
@@ -220,11 +219,11 @@ onMounted(async () => {
   wsClient.connect();
 });
 
-onBeforeMount(() => {
-  //   if (eventSource) {
-  //     eventSource.close();
-  //   }
-});
+// onBeforeMount(() => {
+//   if (eventSource) {
+//     eventSource.close();
+//   }
+// });
 </script>
 
 <style scoped lang="scss">

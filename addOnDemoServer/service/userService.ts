@@ -5,18 +5,20 @@ import { post, del } from "../util/http";
 import { tokenStore } from "../db/tokenStore";
 // 导入设备服务器管理器
 import { deviceServerManager } from "../webscoketServer/deviceServerManager";
-
+/**
+ * @description 易微联账号登录
+ * @param body
+ * @returns
+ */
 export async function loginService(body: any) {
   let buffer = Buffer.from(JSON.stringify(body), "utf-8");
-  // const appSecret = "V0LmoW0cd2cg38i1eIM0P5Z29GjES4PA";
+  // 进行sha256签名
   const theSign = crypto
     .createHmac("sha256", process.env.EWELINK_APP_APPSECRET)
     .update(buffer)
     .digest("base64");
 
-  console.log(JSON.parse(JSON.stringify(body)), "Request.body");
-  console.log(theSign, JSON.stringify(body), "theSign");
-
+  // 易微联账号登录
   const result = await post<eweLinkAppToken>(
     "/user/login",
     JSON.stringify(body),
@@ -27,7 +29,6 @@ export async function loginService(body: any) {
       },
     }
   );
-  console.log(result, "res");
 
   // 如果登录成功，存储token
   if (result && result.data.at) {
@@ -39,12 +40,6 @@ export async function loginService(body: any) {
       result.data.user.phoneNumber
         ? result.data.user.phoneNumber
         : result.data.user.email
-    );
-    console.log(
-      result.data.at,
-      result.data.rt,
-      result.data.user.apikey,
-      "Token已存储到数据库"
     );
     // 在登录成功后与设备服务器进行握手
     try {
