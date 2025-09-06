@@ -2,13 +2,13 @@ name: Build ARMv7 Docker Images
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ master ]
     paths:
       - 'addondemoclient/**'
       - 'addondemoserver/**'
       - '.github/workflows/build.yml'
   pull_request:
-    branches: [ main, master ]
+    branches: [ master ]
     paths:
       - 'addondemoclient/**'
       - 'addondemoserver/**'
