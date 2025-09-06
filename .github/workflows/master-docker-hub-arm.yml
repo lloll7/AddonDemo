@@ -6,14 +6,14 @@ on:
   push:
     branches: [ master ]
     paths:
-      - 'addondemoclient/**'
-      - 'addondemoserver/**'
-      - '.github/workflows/build.yml'
+      - 'addOnDemoClient/**'
+      - 'addonDemoServer/**'
+      - '.github/workflows/master-docker-hub-arm.yml'
   pull_request:
     branches: [ master ]
     paths:
-      - 'addondemoclient/**'
-      - 'addondemoserver/**'
+      - 'addOnDemoClient/**'
+      - 'addonDemoServer/**'
 
 env:
   # 设置公共环境变量
@@ -41,18 +41,18 @@ jobs:
     - name: Log in to Docker Hub
       uses: docker/login-action@v3
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        username: ${{ env.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and push Client image
       uses: docker/build-push-action@v5
       with:
-        context: ./addondemoclient
+        context: ./addOnDemoClient
         platforms: linux/arm/v7
         push: true
         tags: |
-          ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.CLIENT_IMAGE }}:${{ secrets.VERSION }}-armv7
-          ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.CLIENT_IMAGE }}:latest-armv7
+          ${{ env.DOCKERHUB_USERNAME }}/${{ env.CLIENT_IMAGE }}:${{ env.VERSION }}-armv7
+          ${{ env.DOCKERHUB_USERNAME }}/${{ env.CLIENT_IMAGE }}:latest-armv7
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: addondemoserver
+        working-directory: addonDemoServer
 
     steps:
     - name: Checkout code
@@ -74,17 +74,17 @@ jobs:
     - name: Log in to Docker Hub
       uses: docker/login-action@v3
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        username: ${{ env.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and push Server image
       uses: docker/build-push-action@v5
       with:
-        context: ./addondemoserver
+        context: ./addonDemoServer
         platforms: linux/arm/v7
         push: true
         tags: |
-          ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.SERVER_IMAGE }}:${{ secrets.VERSION }}-armv7
-          ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.SERVER_IMAGE }}:latest-armv7
+          ${{ env.DOCKERHUB_USERNAME }}/${{ env.SERVER_IMAGE }}:${{ env.VERSION }}-armv7
+          ${{ env.DOCKERHUB_USERNAME }}/${{ env.SERVER_IMAGE }}:latest-armv7
         cache-from: type=gha
         cache-to: type=gha,mode=max
