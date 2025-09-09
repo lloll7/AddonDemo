@@ -120,21 +120,6 @@ export class DeviceServerClient {
           console.log("设备服务器连接成功");
           this.isConnected = true;
           this.reconnectAttempts = 0; // 重置重连次数
-          //   const tokenInfo = await tokenStore.getToken();
-          //   //   console.log(tokenInfo, "tokenInfo");
-          //   if (tokenInfo && tokenInfo.at) {
-          //     await this.handShake({
-          //       action: "userOnline",
-          //       version: 8,
-          //       at: tokenInfo.at,
-          //       userAgent: "app",
-          //       apikey: tokenInfo.apiKey,
-          //       appid: process.env.EWELINK_APP_APPID,
-          //       nonce: createNoce(),
-          //       sequence: String(Date.now()),
-          //     });
-          //   }
-          //   this.startHeartbeat(); // 启动心跳
           resolve();
         };
 

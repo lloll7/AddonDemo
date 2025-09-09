@@ -1,5 +1,8 @@
 <template>
-  <div class="device-container" :class="{ offine: device && device.isOnline === false }">
+  <div
+    class="device-container"
+    :class="{ offine: device && device.isOnline === false }"
+  >
     <div class="device-info">
       <div class="device-info-content">
         <div class="logo">
@@ -15,7 +18,12 @@
         </div>
       </div>
       <div class="device-category-logo">
-        <img :src="device.isOnline ? onlineLogo : offlineLogo" alt="" width="24" height="24" />
+        <img
+          :src="device.isOnline ? onlineLogo : offlineLogo"
+          alt=""
+          width="24"
+          height="24"
+        />
       </div>
     </div>
     <div class="device-status">
@@ -33,7 +41,7 @@
         </a-button>
       </div>
     </div>
-    <a-modal
+    <!-- <a-modal
       wrapClassName="controlThingModal"
       :open="controlThing"
       title="设备控制"
@@ -42,7 +50,12 @@
       :maskClosable="false"
       :footer="null"
     >
-      <div class="params-item" v-if="deviceParams" v-for="(item, key) in deviceParams" :key="key">
+      <div
+        class="params-item"
+        v-if="deviceParams"
+        v-for="(item, key) in deviceParams"
+        :key="key"
+      >
         <span>{{ EThingParams[`${key}`] }}</span>
         <a-radio-group
           v-if="key === 'workMode'"
@@ -61,13 +74,13 @@
         />
       </div>
       <a-button @click="handleCancel" class="btn">关闭</a-button>
-    </a-modal>
+    </a-modal> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import type { IThing, IThingParams } from "@/ts/interface/IThing";
-import EThingParams from "@/ts/enum/EThingParams";
+// import EThingParams from "@/ts/enum/EThingParams";
 import TRVZBLogo from "@/assets/img/TRVZB.png";
 import onlineLogo from "@/assets/img/wifi.png";
 import offlineLogo from "@/assets/img/offline.png";
@@ -75,7 +88,7 @@ import { defineEmits, ref, onMounted, watch } from "vue";
 import { useBridgeStore } from "@/store/bridge";
 import { message } from "ant-design-vue";
 import { updateDeviceIsSync } from "@/util/updateDeviceIsSync";
-import { useBridgeDeviceSerialNumberStore } from "@/store/bridgeDeviceList";
+import { useBridgeDeviceSerialNumberStore } from "@/store/bridgeDeviceSerialNumber";
 import api from "@/api";
 const props = defineProps<{
   device: IThing;
@@ -86,56 +99,42 @@ const bridgeStore = useBridgeStore();
 const bridgeDeviceSerialNumberStore = useBridgeDeviceSerialNumberStore();
 const emit = defineEmits(["changeModalStatus", "changeDeviceStatus"]);
 // 提交设备控制
-const handleSubmit = async (param: string) => {
-  let data;
-  switch (param) {
-    case "childLock":
-      data = {
-        childLock: deviceParams.value?.childLock,
-      };
-      break;
-    case "workMode":
-      data = {
-        workMode: deviceParams.value?.workMode,
-      };
-      break;
-  }
-  emit("changeDeviceStatus", data);
-};
+// const handleSubmit = async (param: string) => {
+//   let data;
+//   switch (param) {
+//     case "childLock":
+//       data = {
+//         childLock: deviceParams.value?.childLock,
+//       };
+//       break;
+//     case "workMode":
+//       data = {
+//         workMode: deviceParams.value?.workMode,
+//       };
+//       break;
+//   }
+//   emit("changeDeviceStatus", data);
+// };
 
 // 同步设备
 const asyncDevice = async (deviceid: string, isSynced: boolean) => {
   // 先判断是否存有网关访问凭证
   const bridgeAt = bridgeStore.getBridgeAt();
-  if (bridgeAt) {
-    // 如果有则同步设备
-    // 判断是同步还是取消同步
-    if (isSynced) {
-      const serNumList = bridgeDeviceSerialNumberStore.getDeviceSerialNumber();
-      let devSerNum = null;
-      serNumList.forEach((item) => {
-        if (item.third_serial_number === deviceid) {
-          devSerNum = item.serial_number;
-          return;
-        }
-      });
-      if (!devSerNum) return;
-      const res = await api.bridge.delDevice(devSerNum);
-      if (res.error === 0) {
-        message.success("取消同步成功");
-        await updateDeviceIsSync(); // 更新设备同步状态
-      }
-      return;
-    }
-    // 同步
-    const res = await api.bridge.syncDevice(deviceid);
-    if (res.header && res.header.name === "Response") {
-      message.success("同步成功");
-      await updateDeviceIsSync(); // 更新设备同步状态
-    } else {
-      message.error("同步失败");
-    }
+  if (!bridgeAt) {
+    await getBridgeTokenFn();
+    return;
+  }
+  // 如果有则同步设备
+  // 判断是同步还是取消同步
+  if (isSynced) {
+    await unAsyncDeviceFn(deviceid); // 取消同步
   } else {
+    await asyncDeviceFn(deviceid); // 同步设备
+  }
+};
+// 获取网关访问凭证
+const getBridgeTokenFn = async () => {
+  try {
     // 如果没有则调用获取网关访问凭证的接口
     const res = await api.bridge.getBridgeToken();
     if (res.error === 401) {
@@ -147,11 +146,50 @@ const asyncDevice = async (deviceid: string, isSynced: boolean) => {
       message.success("获取网关访问凭证成功");
       await updateDeviceIsSync(); // 更新设备同步状态
     }
+  } catch (error) {
+    console.log(error);
   }
 };
-const handleCancel = () => {
-  emit("changeModalStatus", false);
+// 同步对应设备
+const asyncDeviceFn = async (deviceid: string) => {
+  try {
+    // 同步
+    const res = await api.bridge.syncDevice(deviceid);
+    if (res.header && res.header.name === "Response") {
+      message.success("同步成功");
+      await updateDeviceIsSync(); // 更新设备同步状态
+    } else {
+      message.error("同步失败");
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };
+// 取消同步
+const unAsyncDeviceFn = async (deviceid: string) => {
+  try {
+    const serNumList = bridgeDeviceSerialNumberStore.getDeviceSerialNumber();
+    let devSerNum = "";
+    serNumList.forEach((item) => {
+      if (item.third_serial_number === deviceid) {
+        devSerNum = item.serial_number;
+        return;
+      }
+    });
+    if (!devSerNum) return;
+    const res = await api.bridge.delDevice(devSerNum);
+    if (res.error === 0) {
+      message.success("取消同步成功");
+      await updateDeviceIsSync(); // 更新设备同步状态
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// const handleCancel = () => {
+//   emit("changeModalStatus", false);
+// };
 
 onMounted(() => {
   const params = JSON.parse(JSON.stringify(props.device.params));

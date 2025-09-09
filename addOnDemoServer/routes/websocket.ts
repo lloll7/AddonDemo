@@ -100,10 +100,6 @@ export async function initializeWebSocket(server: Server) {
               timestamp: Date.now(),
             });
             break;
-          //   case "handshake":
-          //     // 处理握手消息
-          //     await handleHandShake(message, id, ws);
-          //     break;
 
           case "device_control":
             // 处理设备控制消息

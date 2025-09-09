@@ -14,7 +14,7 @@ router.get("/access_token", async (req, res, next) => {
     const result = await accessTokenService();
     res.json(result);
   } catch (err) {
-    next(err);
+    res.status(500).json({ error: "服务器内部错误", msg: err.message });
   }
 });
 
@@ -24,7 +24,7 @@ router.get("/local_access_token", async (req, res, next) => {
     const token = await aiBridgeTokenStore.getToken();
     res.json(token);
   } catch (err) {
-    next(err);
+    res.status(500).json({ error: "服务器内部错误", msg: err.message });
   }
 });
 
@@ -34,7 +34,7 @@ router.delete("/access_token", async (req, res, next) => {
     await aiBridgeTokenStore.clearToken();
     res.json({ ok: true });
   } catch (err) {
-    next(err);
+    res.status(500).json({ error: "服务器内部错误", msg: err.message });
   }
 });
 
@@ -44,7 +44,7 @@ router.get("/devices", async (req, res, next) => {
     const serialNumbers = await devicesSerivce();
     res.json(serialNumbers);
   } catch (err) {
-    next(err);
+    res.status(500).json({ error: "服务器内部错误", msg: err.message });
   }
 });
 
@@ -54,7 +54,7 @@ router.post("/thirdparty/event/sync", async (req, res, next) => {
     const result = await discoveryRequestService(req.body);
     res.json(result);
   } catch (err) {
-    next(err);
+    res.status(500).json({ error: "服务器内部错误", msg: err.message });
   }
 });
 
@@ -65,7 +65,7 @@ router.delete("/del/:serNum", async (req, res, next) => {
     const result = await delDevice(serNum);
     res.json(result);
   } catch (err) {
-    next(err);
+    res.status(500).json({ error: "服务器内部错误", msg: err.message });
   }
 });
 

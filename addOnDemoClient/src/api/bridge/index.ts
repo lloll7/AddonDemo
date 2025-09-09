@@ -1,5 +1,9 @@
 import request from "../request";
-import type { BridgeToken, DRResponse, serialNumberItem } from "@/ts/interface/IBridge";
+import type {
+  BridgeToken,
+  DRResponse,
+  serialNumberItem,
+} from "@/ts/interface/IBridge";
 import type { Response } from "@/ts/interface/IResponse";
 
 async function getBridgeToken() {
@@ -18,7 +22,10 @@ async function syncDevice(deviceId: string) {
   let params = {
     deviceId,
   };
-  return await request.post<any, DRResponse>("/api/bridge/thirdparty/event/sync", params);
+  return await request.post<any, DRResponse>(
+    "/api/bridge/thirdparty/event/sync",
+    params,
+  );
 }
 
 async function delDevice(serNum: string) {

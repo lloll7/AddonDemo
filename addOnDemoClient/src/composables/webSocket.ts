@@ -86,30 +86,6 @@ export class WebSocketClient {
     if (this.handlers.onMessage) {
       this.handlers.onMessage(data);
     }
-
-    switch (data.type) {
-      case "welcome":
-        this.clientId = data.id || null;
-        console.log(`${data.message}, 客户端ID为：${this.clientId}`);
-        break;
-      case "pong":
-        console.log(`心跳响应，timestamp: ${data.timestamp}`);
-        break;
-      case "broadcast":
-        console.log(`收到推送消息：${data.message}`);
-        break;
-      case "device_update":
-        console.log(`收到设备更新消息：`, data.message);
-        break;
-      case "echo":
-        console.log(`收到默认消息: ${data.originalMessage}`);
-        break;
-      case "error":
-        console.error(`服务器错误: ${data.message}`);
-        break;
-      default:
-        console.log(`未知消息：${data}`);
-    }
   }
   // 发送消息到服务器
   public send(data: ClientMessage | string) {

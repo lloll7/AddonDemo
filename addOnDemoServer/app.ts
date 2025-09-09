@@ -16,7 +16,6 @@ import type { AddressInfo } from "net";
 import userRouter from "./routes/user";
 import deviceRouter from "./routes/device";
 import AIBridge from "./routes/AIBridge";
-import sseRouter from "./routes/sse";
 import wsRouter, { initializeWebSocket } from "./routes/websocket";
 
 import cors from "cors";
@@ -114,7 +113,6 @@ app.use(express.static(path.join(__dirname, "public")));
 // app.use("/", indexRouter);
 app.use("/user", userRouter);
 app.use("/device", deviceRouter);
-app.use("/sse", sseRouter);
 app.use("/ws", wsRouter);
 app.use("/bridge", AIBridge);
 

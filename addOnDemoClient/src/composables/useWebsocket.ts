@@ -1,6 +1,9 @@
 // example.ts
 import { WebSocketClient } from "./webSocket";
-import type { ServerMessage, DeviceStatusUpdateMessage } from "@/ts/interface/IWebsocket";
+import type {
+  ServerMessage,
+  DeviceStatusUpdateMessage,
+} from "@/ts/interface/IWebsocket";
 import type { IThingParams } from "@/ts/interface/IThing";
 import { useDeviceListStore } from "@/store/deviceList";
 import { useEtcStore } from "@/store/etc";
@@ -47,9 +50,17 @@ wsClient
             updateStatus.workMode = dataMsg.params.workMode;
           }
           //   deviceListStore.changeDeviceState("sysmsg", { online: false }, "a400012c27");
-          deviceListStore.changeDeviceState(dataMsg.action, updateStatus, dataMsg.deviceid);
+          deviceListStore.changeDeviceState(
+            dataMsg.action,
+            updateStatus,
+            dataMsg.deviceid,
+          );
         } else if (dataMsg.action === "sysmsg") {
-          deviceListStore.changeDeviceState(dataMsg.action, dataMsg.params, dataMsg.deviceid);
+          deviceListStore.changeDeviceState(
+            dataMsg.action,
+            dataMsg.params,
+            dataMsg.deviceid,
+          );
         }
       case "pong":
         console.log("心跳响应正常");

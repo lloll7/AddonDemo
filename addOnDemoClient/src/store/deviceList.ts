@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import api from "@/api";
-import type { IThing, IThingParams } from "@/ts/interface/IThing";
+import type { IThing } from "@/ts/interface/IThing";
 
 interface IDeviceListState {
   deviceList: IThing[];
@@ -17,12 +17,6 @@ export const useDeviceListStore = defineStore("deviceListStore", {
     getDeviceList() {
       return this.deviceList;
     },
-    getDeviceById(deviceId: string): IThing | null {
-      this.deviceList.forEach((item) => {
-        if (item.deviceId === deviceId) return item;
-      });
-      return null;
-    },
     setDeviceList(state: IThing[]) {
       this.deviceList = state;
     },
@@ -30,7 +24,7 @@ export const useDeviceListStore = defineStore("deviceListStore", {
       this.deviceList = [];
     },
     async initDeviceList(token: string) {
-      if (token !== "") {
+      if (!token) {
         const thingList = await api.thing.getThingList();
         this.deviceList = thingList;
       }
@@ -38,8 +32,8 @@ export const useDeviceListStore = defineStore("deviceListStore", {
     changeDeviceState(type: string, params: any, deviceId: string) {
       if (type === "update") {
         // 设备状态更新
-        if (typeof params.childLock === "undefined" && typeof params.workMode === "undefined")
-          return;
+        //  判断是否是童锁或者工作模式等能力的更改
+        if (!("childLock" in params) && !("workMode" in params)) return;
         this.deviceList.forEach((item) => {
           if (item.deviceId === deviceId) {
             item.params = {
@@ -56,8 +50,6 @@ export const useDeviceListStore = defineStore("deviceListStore", {
           }
         });
       }
-      // 刷新页面
-      //   window.location.reload();
     },
   },
 });

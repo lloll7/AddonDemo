@@ -12,7 +12,9 @@
               etcStore.at ? "进行中" : "未登录"
             }}</a-tag>
           </div>
-          <span class="description">Control eWeLink's LAN devices in eWeLink CUBE</span>
+          <span class="description"
+            >Control eWeLink's LAN devices in eWeLink CUBE</span
+          >
         </div>
       </div>
       <div class="login-btn">
@@ -69,9 +71,14 @@
         :key="item.deviceId"
         :device="item"
         :controlThing="controlThingBool"
-        @click="item.isOnline && changeModalStatus(true)"
+        @click="item.isOnline && changeModalStatus(true, item)"
         @changeModalStatus="changeModalStatus"
         @changeDeviceStatus="(data) => changeDeviceStatus(data, item)"
+      />
+      <deviceModal
+        v-if="currDevice"
+        :controlThing="controlThingBool"
+        :device="currDevice"
       />
     </div>
   </div>
@@ -92,6 +99,7 @@ import deviceItem from "@/components/deviceItem.vue";
 import { wsClient } from "@/composables/useWebsocket";
 import type { DeviceControlMessage } from "@/ts/interface/IWebsocket";
 import { updateDeviceIsSync } from "@/util/updateDeviceIsSync";
+import deviceModal from "@/components/deviceModal.vue";
 
 const etcStore = useEtcStore();
 const bridgeStore = useBridgeStore();
@@ -99,6 +107,7 @@ const deviceListStore = useDeviceListStore();
 const infoInputModalStatus = ref(false);
 const confirmLoading = ref(false);
 const controlThingBool = ref(false);
+const currDevice = ref<IThing | null>(null);
 const formState = ref({
   countryCode: "",
   username: "",
@@ -165,11 +174,15 @@ const handleLoginOutClick = async () => {
   clearFormState();
 };
 
-const changeModalStatus = (status: boolean) => {
+const changeModalStatus = (status: boolean, deivce: IThing) => {
   controlThingBool.value = status;
+  currDevice.value = deivce;
 };
 // 更改设备状态
-const changeDeviceStatus = async (newDeviceStatus: IThingParams, currDevice: IThing) => {
+const changeDeviceStatus = async (
+  newDeviceStatus: IThingParams,
+  currDevice: IThing,
+) => {
   const apikey = etcStore.getApikey();
   if (apikey) {
     const param: DeviceControlMessage = {
@@ -186,42 +199,16 @@ const changeDeviceStatus = async (newDeviceStatus: IThingParams, currDevice: ITh
   }
 };
 
-/** 暂时去除sse连接, 后续长连接通过websocket进行 */
-/** SSE连接部分 */
-// let eventSource: EventSource | null = null;
 onMounted(async () => {
-  //   // 获取sse连接实例
-  //   eventSource = new EventSource("http://localhost:3000/sse/stream");
-  //   // 监听消息事件
-  //   eventSource.onmessage = (event: MessageEvent) => {
-  //     const data = JSON.parse(event.data);
-  //     console.log(data);
-  //   };
-  //   eventSource.addEventListener("ping", (e) => {
-  //     // 心跳
-  //     console.log("ping:", e.data);
-  //   });
-  //   eventSource.addEventListener("thingList", (e) => {
-  //     const payload = JSON.parse(e.data);
-  //     console.log("thingList: ", payload);
-  //   });
-  //   eventSource.onerror = (e) => {
-  //     console.warn("sse error", e);
-  //   };
   await etcStore.initToken(); // 页面刷新后重新获取token
   await bridgeStore.initBridgeAt();
+  // 未登录不做任何接口调用
   if (etcStore.at) {
     await deviceListStore.initDeviceList(etcStore.at); // 如果已登录则获取设备列表
+    await updateDeviceIsSync(); // 更新设备同步状态
   }
-  await updateDeviceIsSync(); // 更新设备同步状态
   wsClient.connect();
 });
-
-// onBeforeMount(() => {
-//   if (eventSource) {
-//     eventSource.close();
-//   }
-// });
 </script>
 
 <style scoped lang="scss">

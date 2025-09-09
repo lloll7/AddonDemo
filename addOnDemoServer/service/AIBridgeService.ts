@@ -7,7 +7,8 @@ import { aiBridgeTokenStore } from "../db/aiBridgeTokenStore";
 import { get, post, del } from "../util/AIBridgeHttp";
 import { deviceStore } from "../db/deviceStore";
 import EThermostatMode from "../ts/enum/EThermostatMode";
-import { transfromStatusStructure } from "../util/tool";
+import { transfromStatusStructure, getCurrWifiIpv4Address } from "../util/tool";
+import { getPostHeader } from "../util/buildAIBridgeParams";
 import { v4 } from "uuid";
 import { env } from "../ts/env";
 /**
@@ -53,14 +54,12 @@ export async function discoveryRequestService(body: any) {
   const { deviceid, name, params, extra } = deviceInfo;
   const paramsObj = JSON.parse(params);
   const extraObj = JSON.parse(extra);
+  const ipv4Address = getCurrWifiIpv4Address(); // 获取当前连接wifi的ipv4地址
+  const header = getPostHeader("DiscoveryRequest");
   let modeArr = ["MANUAL", "ECO", "AUTO"];
   let postParams: finalParam = {
     event: {
-      header: {
-        name: "DiscoveryRequest",
-        message_id: v4(),
-        version: "2",
-      },
+      header,
       payload: {
         endpoints: [
           {
@@ -100,31 +99,12 @@ export async function discoveryRequestService(body: any) {
             model: extraObj.model,
             firmware_version: paramsObj.fwVersion,
             // 获取本机当前使用的网络的IPv4地址
-            service_address: `http://${(() => {
-              const os = require("os");
-              const interfaces = os.networkInterfaces();
-              for (const name of Object.keys(interfaces)) {
-                for (const iface of interfaces[name]) {
-                  if (
-                    iface.family === "IPv4" &&
-                    !iface.internal &&
-                    iface.address
-                  ) {
-                    return iface.address;
-                  }
-                }
-              }
-              return "127.0.0.1";
-            })()}:${env.PORT}/ws/device-control`,
+            service_address: `http://${ipv4Address}:${env.PORT}/ws/device-control`,
           },
         ],
       },
     },
   };
-  console.log(
-    postParams.event.payload.endpoints[0].service_address,
-    "[0].third_serial_number"
-  );
   const result = await post("/thirdparty/event", postParams);
   return result;
 }

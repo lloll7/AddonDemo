@@ -37,7 +37,7 @@ jobs:
     - name: Build and push image
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: . # 表示构建镜像时使用当前的目录，与构建相关的所有文件都会从当前目录去找
         platforms: linux/arm/v7,linux/amd64
         push: true
         tags: |

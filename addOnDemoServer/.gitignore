@@ -62,3 +62,6 @@ typings/
 
 # 如果 secret 文件夹在 ts 目录下，应该写成：
 ts/secret/
+
+# 打包后的文件
+dist/
