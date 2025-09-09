@@ -51,6 +51,7 @@ var deviceStore_1 = require("../db/deviceStore");
 var EThermostatMode_1 = __importDefault(require("../ts/enum/EThermostatMode"));
 var tool_1 = require("../util/tool");
 var uuid_1 = require("uuid");
+var env_1 = require("../ts/env");
 /**
  * @description 获取网关访问凭证
  */
@@ -180,7 +181,7 @@ function discoveryRequestService(body) {
                                                 }
                                             }
                                             return "127.0.0.1";
-                                        })(), ":").concat(process.env.PORT, "/ws/device-control"),
+                                        })(), ":").concat(env_1.env.PORT, "/ws/device-control"),
                                     },
                                 ],
                             },
@@ -241,9 +242,7 @@ function deviceOnlineStatesChangeReport(body) {
         var serialNumbers, params, result;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0:
-                    console.log(body, "设备上下线更新上报");
-                    return [4 /*yield*/, devicesSerivce(body.status.deviceId)];
+                case 0: return [4 /*yield*/, devicesSerivce(body.status.deviceId)];
                 case 1:
                     serialNumbers = _a.sent();
                     params = {
@@ -259,7 +258,6 @@ function deviceOnlineStatesChangeReport(body) {
                             },
                         },
                     };
-                    console.log(params, "设备上下限params");
                     return [4 /*yield*/, (0, AIBridgeHttp_1.post)("/thirdparty/event", params)];
                 case 2:
                     result = _a.sent();

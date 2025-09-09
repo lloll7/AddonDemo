@@ -46,10 +46,11 @@ exports.afterLoginRequest = afterLoginRequest;
 var axios_1 = __importDefault(require("axios"));
 var api_1 = require("./api");
 var EReqMethod_1 = __importDefault(require("../ts/enum/EReqMethod"));
+var env_1 = require("../ts/env");
 // import { apiUrl } from "@/config";
 // import { useDisconnect } from "@/hooks/useDisconnect";
 // 初始化axios设置
-axios_1.default.defaults.baseURL = process.env.IHOST_OPENAPI_ADDRESS;
+axios_1.default.defaults.baseURL = env_1.env.IHOST_OPENAPI_ADDRESS;
 axios_1.default.defaults.timeout = 60000;
 // 生成随机数
 var chars = [

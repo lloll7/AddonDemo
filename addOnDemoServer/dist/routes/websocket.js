@@ -234,10 +234,7 @@ function handleDeviceControl(message, clientId, ws) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.log(message, "messagemessage");
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
+                    _a.trys.push([0, 2, , 3]);
                     // 先判断 message.message 是否为对象且包含 deviceid
                     if (typeof message.message !== "object" ||
                         !message.message ||
@@ -258,9 +255,8 @@ function handleDeviceControl(message, clientId, ws) {
                         }));
                         return [2 /*return*/];
                     }
-                    console.log(message, "messagemessagemessage");
                     return [4 /*yield*/, deviceServerManager_1.deviceServerManager.sendDeviceControl(message.message)];
-                case 2:
+                case 1:
                     response = _a.sent();
                     clientMessage = {
                         type: "device_response",
@@ -270,8 +266,8 @@ function handleDeviceControl(message, clientId, ws) {
                     // 如果是同步设备的状态变更，在这里判断设备状态改变是否成功，成功则上报设备状态更新
                     // ....
                     ws.send(JSON.stringify(clientMessage));
-                    return [3 /*break*/, 4];
-                case 3:
+                    return [3 /*break*/, 3];
+                case 2:
                     error_3 = _a.sent();
                     console.error("设备控制处理失败:", error_3);
                     ws.send(JSON.stringify({
@@ -279,8 +275,8 @@ function handleDeviceControl(message, clientId, ws) {
                         message: "\u8BBE\u5907\u63A7\u5236\u5931\u8D25: ".concat(error_3 instanceof Error ? error_3.message : "未知错误"),
                         timestamp: Date.now(),
                     }));
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
             }
         });
     });

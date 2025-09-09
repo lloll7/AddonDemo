@@ -42,6 +42,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deviceServerManager = exports.DeviceServerManager = void 0;
 var deviceWsServer_1 = require("./deviceWsServer");
 var axios_1 = __importDefault(require("axios"));
+var env_1 = require("../ts/env");
 var DeviceServerManager = /** @class */ (function () {
     function DeviceServerManager() {
         this.deviceServer = null;
@@ -76,7 +77,7 @@ var DeviceServerManager = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 4, , 5]);
-                        return [4 /*yield*/, axios_1.default.get("https://".concat(process.env.DISPATCH_WEBSOCKET_ADDRESS, "/dispatch/app"))];
+                        return [4 /*yield*/, axios_1.default.get("https://".concat(env_1.env.DISPATCH_WEBSOCKET_ADDRESS, "/dispatch/app"))];
                     case 2:
                         res = _a.sent();
                         console.log("获取到设备服务器地址:", res.data.IP);

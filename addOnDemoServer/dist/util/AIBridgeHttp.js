@@ -57,9 +57,10 @@ exports.del = del;
 exports.patch = patch;
 var axios_1 = __importDefault(require("axios"));
 var aiBridgeTokenStore_1 = require("../db/aiBridgeTokenStore");
+var env_1 = require("../ts/env");
 // 创建 axios 实例
 var http = axios_1.default.create({
-    baseURL: "http://".concat(process.env.IHOST_OPENAPI_ADDRESS, "/open-api/v2/rest"),
+    baseURL: "http://".concat(env_1.env.IHOST_OPENAPI_ADDRESS, "/open-api/v2/rest"),
     timeout: 10000,
     headers: {
         "Content-Type": "application/json",

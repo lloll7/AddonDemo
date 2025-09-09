@@ -43,6 +43,7 @@ var express_1 = __importDefault(require("express"));
 var userService_1 = require("../service/userService");
 var http_1 = require("../util/http");
 var tokenStore_1 = require("../db/tokenStore");
+var secret_1 = require("../ts/secret");
 var router = express_1.default.Router();
 /* 登录 */
 router.post("/login", function (req, res, next) {
@@ -52,7 +53,6 @@ router.post("/login", function (req, res, next) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    console.log(req.body, "登录请求");
                     return [4 /*yield*/, (0, userService_1.loginService)(req.body)];
                 case 1:
                     result = _a.sent();
@@ -78,7 +78,7 @@ router.delete("/logout", function (req, res, next) {
                     _a.trys.push([0, 5, , 6]);
                     return [4 /*yield*/, (0, http_1.del)("/user/logout", {
                             headers: {
-                                "X-CK-Appid": process.env.EWELINK_APP_APPID,
+                                "X-CK-Appid": secret_1.secret.EWELINK_APP_APPID,
                             },
                         })];
                 case 1:

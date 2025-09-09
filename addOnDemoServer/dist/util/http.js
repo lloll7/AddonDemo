@@ -59,9 +59,10 @@ var axios_1 = __importDefault(require("axios"));
 // import { message } from "ant-design-vue"; // 如果有使用UI框架
 var api_1 = require("./api");
 var public_1 = require("../util/public");
+var env_1 = require("../ts/env");
 // 创建 axios 实例
 var http = axios_1.default.create({
-    baseURL: "https://".concat(process.env.EWELINK_APP_DOMAIN, "/v2"),
+    baseURL: "https://".concat(env_1.env.EWELINK_APP_DOMAIN, "/v2"),
     timeout: 10000,
     headers: {
         "Content-Type": "application/json",

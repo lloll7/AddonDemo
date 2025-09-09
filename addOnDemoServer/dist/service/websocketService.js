@@ -58,11 +58,11 @@ var AIBridgeHttp_1 = require("../util/AIBridgeHttp");
 var uuid_1 = require("uuid");
 function controlService(body) {
     return __awaiter(this, void 0, void 0, function () {
-        var apiKey, submitUpdateParams, contorlMessage, result, reportData, reportResult;
+        var apiKey, submitUpdateParams, lockStatus, contorlMessage, result, reportData, reportResult;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.log(body, "网关控制同步设备发送的控制参数");
+                    console.log(body.directive.payload.state, "网关控制同步设备发送的控制参数");
                     return [4 /*yield*/, tokenStore_1.tokenStore.getToken()];
                 case 1:
                     apiKey = (_a.sent()).apiKey;
@@ -71,6 +71,10 @@ function controlService(body) {
                         body.directive.payload.state.thermostat["thermostat-mode"]) {
                         submitUpdateParams.workMode =
                             EThermostatMode_1.default[body.directive.payload.state.thermostat["thermostat-mode"].thermostatMode];
+                    }
+                    if (body.directive.payload.state["child-lock"]) {
+                        lockStatus = body.directive.payload.state["child-lock"].powerState === "on";
+                        submitUpdateParams.childLock = lockStatus;
                     }
                     contorlMessage = {
                         action: "update",

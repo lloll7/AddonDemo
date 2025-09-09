@@ -54,6 +54,7 @@ var AIBridge_1 = __importDefault(require("./routes/AIBridge"));
 var sse_1 = __importDefault(require("./routes/sse"));
 var websocket_1 = __importStar(require("./routes/websocket"));
 var cors_1 = __importDefault(require("cors"));
+var env_1 = require("./ts/env");
 var app = (0, express_1.default)();
 app.use((0, cors_1.default)()); // 启用 CORS，允许前端跨域请求
 app.use((0, cors_1.default)({
@@ -63,7 +64,7 @@ app.use((0, cors_1.default)({
 }));
 app.options("*", (0, cors_1.default)());
 // 新
-var port = process.env.PORT || "3001";
+var port = env_1.env.PORT || "3001";
 app.set("port", port);
 var server = http_1.default.createServer(app);
 // 在路由设置前添加静态文件服务
@@ -72,11 +73,14 @@ app.use(express_1.default.static(path_1.default.join(__dirname, "../public")));
 // app.get("*", (req, res) => {
 //   res.sendFile(path.join(__dirname, "../public/index.html"));
 // });
-// 初始化 WebSocket 服务器
-(0, websocket_1.initializeWebSocket)(server);
-server.listen(port);
+server.listen(Number(port), "0.0.0.0", function () {
+    var address = server.address();
+    console.log("Server running at http://".concat(address.address, ":").concat(address.port));
+});
 server.on("error", onError);
 server.on("listening", onListening);
+// 初始化 WebSocket 服务器
+(0, websocket_1.initializeWebSocket)(server);
 /**
  * Event listener for HTTP server "error" event.
  */

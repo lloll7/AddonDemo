@@ -17,6 +17,7 @@ exports.AIBridgeToken = AIBridgeToken;
  * @returns object
  */
 var transfromStatusStructure = function (status) {
+    console.log(status, "statusstatus");
     if (status.workMode) {
         var mode = EThermostatMode_1.default[status.workMode];
         return {
@@ -24,6 +25,14 @@ var transfromStatusStructure = function (status) {
                 "thermostat-mode": {
                     thermostatMode: mode,
                 },
+            },
+        };
+    }
+    else if (typeof status.childLock === "boolean") {
+        var lock = status.childLock ? "on" : "off";
+        return {
+            "child-lock": {
+                powerState: lock,
             },
         };
     }
